@@ -38,6 +38,14 @@ describe('parseStatus', () => {
     expect(r).toHaveLength(1);
     expect(r[0]).toMatchObject({ path: 'copy.ts', origPath: 'orig.ts', status: 'C ' });
   });
+
+  it('keeps parsing the stream after a rename consumes its two tokens', () => {
+    const r = parseStatus(' M src/a.ts\0R  to.ts\0from.ts\0A  added.ts\0');
+    expect(r).toHaveLength(3);
+    expect(r[0]).toMatchObject({ path: 'src/a.ts', status: ' M' });
+    expect(r[1]).toMatchObject({ path: 'to.ts', origPath: 'from.ts', status: 'R ' });
+    expect(r[2]).toMatchObject({ path: 'added.ts', status: 'A ' });
+  });
 });
 
 describe('parseRefs', () => {
