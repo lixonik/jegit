@@ -541,23 +541,12 @@ export class Git {
     relPath: string,
     limit = 100,
   ): Promise<{ hash: string; parent: string; author: string; date: string; subject: string }[]> {
-    const FS = '\x1f';
-    const RS = '\x1e';
-    const fmt = ['%H', '%P', '%an', '%cI', '%s'].join(FS) + RS;
-    let out = '';
+    const fmt = ['%H', '%P', '%an', '%cI', '%s'].join(LOG_FS) + LOG_RS;
     try {
-      out = await this.raw(['log', `--max-count=${limit}`, `--pretty=format:${fmt}`, '--', relPath]);
+      return parseFileLog(await this.raw(['log', `--max-count=${limit}`, `--pretty=format:${fmt}`, '--', relPath]));
     } catch {
       return [];
     }
-    const res: { hash: string; parent: string; author: string; date: string; subject: string }[] = [];
-    for (const rec of out.split(RS)) {
-      const line = rec.replace(/^\s+/, '');
-      if (!line) continue;
-      const [hash, parents, author, date, subject] = line.split(FS);
-      res.push({ hash, parent: parents ? parents.split(' ')[0] : '', author, date, subject: subject ?? '' });
-    }
-    return res;
   }
 
   async createTag(name: string, ref: string, message?: string): Promise<void> {
@@ -762,6 +751,20 @@ export function parseRefs(s: string): string[] {
     .map((x) => x.trim())
     .filter(Boolean)
     .map((x) => (x.startsWith('HEAD -> ') ? x.slice('HEAD -> '.length) : x));
+}
+
+/** Parse the per-file history stream (`%H %P %an %cI %s`); parent is the first parent. */
+export function parseFileLog(
+  out: string,
+): { hash: string; parent: string; author: string; date: string; subject: string }[] {
+  const res: { hash: string; parent: string; author: string; date: string; subject: string }[] = [];
+  for (const rec of out.split(LOG_RS)) {
+    const line = rec.replace(/^\s+/, '');
+    if (!line) continue;
+    const [hash, parents, author, date, subject] = line.split(LOG_FS);
+    res.push({ hash, parent: parents ? parents.split(' ')[0] : '', author, date, subject: subject ?? '' });
+  }
+  return res;
 }
 
 export interface BlameLine {
