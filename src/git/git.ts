@@ -489,6 +489,17 @@ export class Git {
     }
   }
 
+  async isShallow(): Promise<boolean> {
+    try {
+      return (await this.raw(['rev-parse', '--is-shallow-repository'])).trim() === 'true';
+    } catch {
+      return false;
+    }
+  }
+  async unshallow(): Promise<void> {
+    await this.raw(['fetch', '--unshallow']);
+  }
+
   async fetch(): Promise<void> {
     await this.raw(['fetch', '--prune']);
   }

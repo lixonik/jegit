@@ -328,6 +328,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const uri = vscode.Uri.from({ scheme: REV_SCHEME, path: '/' + file, query: rev.trim() });
     await vscode.commands.executeCommand('vscode.open', uri);
   });
+  reg('jegit.unshallow', async () => {
+    if (!(await git.isShallow())) {
+      vscode.window.showInformationMessage('JeGit: this repository is not shallow.');
+      return;
+    }
+    try {
+      await git.unshallow();
+      vscode.window.showInformationMessage('JeGit: repository unshallowed.');
+    } catch (err) {
+      vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      await repo.refresh();
+    }
+  });
   reg('jegit.resetToRemote', async () => {
     const upstream = await git.upstreamRef();
     if (!upstream) {

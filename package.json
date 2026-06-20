@@ -209,6 +209,12 @@
         "icon": "$(discard)"
       },
       {
+        "command": "jegit.unshallow",
+        "title": "Unshallow Repository",
+        "category": "JeGit",
+        "icon": "$(cloud-download)"
+      },
+      {
         "command": "jegit.init",
         "title": "Create Git Repository",
         "category": "JeGit",
