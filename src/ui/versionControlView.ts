@@ -9,7 +9,7 @@ import { showFileHistory } from './history';
 import { showRebaseDialog } from './rebaseDialog';
 import { performBranchAction } from './branches';
 import { showMergeResolver } from './mergeResolver';
-import { splitHunks } from '../util/diff';
+import { splitHunks, buildHunkPatch } from '../util/diff';
 import { splitStaged } from '../util/stagingGroups';
 import { toWebUrl, commitWebUrl } from '../util/remoteUrl';
 
@@ -646,7 +646,7 @@ export class VersionControlView implements vscode.WebviewViewProvider {
     const message = await vscode.window.showInputBox({ prompt: 'Commit message' });
     if (!message || !message.trim()) return;
 
-    const patch = header + '\n' + picked.map((p) => hunks[p.index].lines.join('\n')).join('\n') + '\n';
+    const patch = buildHunkPatch(header, picked.map((p) => hunks[p.index]));
     const tmp = path.join(os.tmpdir(), `jegit-hunks-${Date.now()}.patch`);
     try {
       fs.writeFileSync(tmp, patch, 'utf8');

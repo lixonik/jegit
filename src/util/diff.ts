@@ -25,3 +25,9 @@ export function splitHunks(diff: string): { header: string; hunks: Hunk[] } {
   if (cur) hunks.push(cur);
   return { header: header.join('\n'), hunks };
 }
+
+/** Rebuild a unified diff from the file header and a selected subset of hunks,
+ *  suitable for `git apply` (per-hunk partial commit). */
+export function buildHunkPatch(header: string, hunks: Hunk[]): string {
+  return header + '\n' + hunks.map((h) => h.lines.join('\n')).join('\n') + '\n';
+}
