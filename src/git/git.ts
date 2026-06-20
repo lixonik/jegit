@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
 import { parseNameStatusZ } from '../util/parse';
+import { parseRecentBranches } from '../util/recentBranches';
 
 export type GitOperation = 'merge' | 'rebase' | 'cherry-pick' | 'revert';
 
@@ -373,16 +374,7 @@ export class Git {
   async recentBranches(limit = 5): Promise<string[]> {
     try {
       const out = await this.raw(['reflog', '--format=%gs', '-n', '200']);
-      const seen = new Set<string>();
-      for (const line of out.split('\n')) {
-        const m = /^checkout: moving from .+ to (.+)$/.exec(line.trim());
-        if (!m) continue;
-        const to = m[1];
-        if (/^[0-9a-f]{40}$/.test(to)) continue; // detached checkouts
-        seen.add(to);
-        if (seen.size >= limit + 1) break;
-      }
-      return [...seen].slice(0, limit + 1);
+      return parseRecentBranches(out, limit);
     } catch {
       return [];
     }
