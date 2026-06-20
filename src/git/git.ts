@@ -501,9 +501,7 @@ export class Git {
   }
   async aheadBehind(): Promise<{ ahead: number; behind: number } | null> {
     try {
-      const out = await this.raw(['rev-list', '--left-right', '--count', '@{u}...HEAD']);
-      const parts = out.trim().split(/\s+/).map((n) => parseInt(n, 10));
-      return { behind: parts[0] || 0, ahead: parts[1] || 0 };
+      return parseAheadBehind(await this.raw(['rev-list', '--left-right', '--count', '@{u}...HEAD']));
     } catch {
       return null;
     }
@@ -800,6 +798,16 @@ export function parseBlame(out: string): BlameLine[] {
     }
   }
   return result;
+}
+
+/** Parse `git rev-list --left-right --count @{u}...HEAD` (left = behind upstream,
+ *  right = ahead of upstream) into counts. */
+export function parseAheadBehind(out: string): { ahead: number; behind: number } {
+  const parts = out
+    .trim()
+    .split(/\s+/)
+    .map((n) => parseInt(n, 10));
+  return { behind: parts[0] || 0, ahead: parts[1] || 0 };
 }
 
 /** Split `for-each-ref --format=%(refname:short)` output into ref names,
