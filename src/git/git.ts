@@ -351,12 +351,7 @@ export class Git {
   /** Local branches already merged into the current branch (excludes the current branch). */
   async mergedBranches(): Promise<string[]> {
     try {
-      const out = await this.raw(['branch', '--merged']);
-      return out
-        .split('\n')
-        .filter((l) => !l.startsWith('*'))
-        .map((l) => l.trim())
-        .filter((b) => b && !b.startsWith('('));
+      return parseMergedBranches(await this.raw(['branch', '--merged']));
     } catch {
       return [];
     }
@@ -803,6 +798,16 @@ export function parseBlame(out: string): BlameLine[] {
     }
   }
   return result;
+}
+
+/** Parse `git branch --merged` into branch names, excluding the current branch
+ *  (the `*` line) and any detached-HEAD `(...)` entry. */
+export function parseMergedBranches(out: string): string[] {
+  return out
+    .split('\n')
+    .filter((l) => !l.startsWith('*'))
+    .map((l) => l.trim())
+    .filter((b) => b && !b.startsWith('('));
 }
 
 /** Parse `git rev-list --left-right --count @{u}...HEAD` (left = behind upstream,
