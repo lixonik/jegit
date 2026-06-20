@@ -146,18 +146,11 @@ export class Git {
   }
 
   async remotesList(): Promise<{ name: string; url: string }[]> {
-    let out = '';
     try {
-      out = await this.raw(['remote', '-v']);
+      return parseRemotes(await this.raw(['remote', '-v']));
     } catch {
       return [];
     }
-    const map = new Map<string, string>();
-    for (const line of out.split('\n')) {
-      const m = /^(\S+)\s+(\S+)\s+\(fetch\)/.exec(line.trim());
-      if (m) map.set(m[1], m[2]);
-    }
-    return [...map].map(([name, url]) => ({ name, url }));
   }
   async remoteAdd(name: string, url: string): Promise<void> {
     await this.raw(['remote', 'add', name, url]);
@@ -813,6 +806,16 @@ export function parseBlame(out: string): BlameLine[] {
     }
   }
   return result;
+}
+
+/** Parse `git remote -v` into unique name/url pairs (using the fetch URL). */
+export function parseRemotes(out: string): { name: string; url: string }[] {
+  const map = new Map<string, string>();
+  for (const line of out.split('\n')) {
+    const m = /^(\S+)\s+(\S+)\s+\(fetch\)/.exec(line.trim());
+    if (m) map.set(m[1], m[2]);
+  }
+  return [...map].map(([name, url]) => ({ name, url }));
 }
 
 /** Parse `git stash list --format=%gd%x1f%gs` into ref/subject pairs. */
