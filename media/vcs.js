@@ -861,16 +861,10 @@
     const filter = logSearch.value.trim().toLowerCase();
     const user = logUser.value;
     const days = logDate.value ? Number(logDate.value) : 0;
-    const dateMin = days ? Date.now() - days * 86400000 : 0;
     logList.innerHTML = '';
     for (let i = 0; i < logCommits.length; i++) {
       const c = logCommits[i];
-      if (user && c.author !== user) continue;
-      if (dateMin && new Date(c.date).getTime() < dateMin) continue;
-      if (filter) {
-        const hay = (c.subject + ' ' + c.author + ' ' + c.hash).toLowerCase();
-        if (!hay.includes(filter)) continue;
-      }
+      if (!JeGitLog.commitMatches(c, { text: filter, user: user, days: days })) continue;
       logList.appendChild(logRow(c, graphRows[i], !filter && !user && !days));
     }
   }
