@@ -62,6 +62,9 @@ async function branchActions(repo: Repository, ref: string, current: string, isR
     actions.push({ label: '$(sync) Checkout and Update', a: 'checkoutUpdate' });
   }
   actions.push({ label: `$(git-branch) New Branch from ${ref}...`, a: 'newfrom' });
+  if (!isRemote && ref !== current) {
+    actions.push({ label: '$(sync) Update', a: 'update' });
+  }
   if (ref !== current) {
     actions.push({ label: `$(git-merge) Merge ${ref} into ${current}`, a: 'merge' });
     actions.push({ label: `$(git-pull-request) Rebase ${current} onto ${ref}`, a: 'rebase' });
@@ -102,6 +105,9 @@ export async function performBranchAction(
       case 'newfrom':
         await newBranchFrom(repo, ref);
         return;
+      case 'update':
+        await repo.git.updateBranch(ref);
+        break;
       case 'merge': {
         type MM = vscode.QuickPickItem & { mode: 'default' | 'no-ff' | 'squash' };
         const modes: MM[] = [

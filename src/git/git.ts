@@ -630,6 +630,25 @@ export class Git {
     await this.raw(['reset', '--hard', ref]);
   }
 
+  /** Short upstream name of a specific local branch (e.g. origin/main), or ''. */
+  async branchUpstream(branch: string): Promise<string> {
+    try {
+      return (await this.raw(['for-each-ref', '--format=%(upstream:short)', `refs/heads/${branch}`])).trim();
+    } catch {
+      return '';
+    }
+  }
+
+  /** Fast-forward a non-checked-out local branch to its upstream (fetch refspec). */
+  async updateBranch(branch: string): Promise<void> {
+    const up = await this.branchUpstream(branch);
+    if (!up) throw new Error(`${branch} has no upstream branch`);
+    const slash = up.indexOf('/');
+    const remote = slash >= 0 ? up.slice(0, slash) : 'origin';
+    const remoteRef = slash >= 0 ? up.slice(slash + 1) : up;
+    await this.raw(['fetch', remote, `${remoteRef}:${branch}`]);
+  }
+
   /** Short upstream name of the current branch (e.g. origin/main), or '' if none. */
   async upstreamRef(): Promise<string> {
     try {
