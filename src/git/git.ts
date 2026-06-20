@@ -623,20 +623,11 @@ export class Git {
     await this.raw(args);
   }
   async stashList(): Promise<{ ref: string; subject: string }[]> {
-    let out = '';
     try {
-      out = await this.raw(['stash', 'list', '--format=%gd%x1f%gs']);
+      return parseStashList(await this.raw(['stash', 'list', '--format=%gd%x1f%gs']));
     } catch {
       return [];
     }
-    return out
-      .split('\n')
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .map((l) => {
-        const [ref, subject] = l.split('\x1f');
-        return { ref, subject: subject ?? '' };
-      });
   }
   async stashApply(ref: string): Promise<void> {
     await this.raw(['stash', 'apply', ref]);
@@ -822,6 +813,18 @@ export function parseBlame(out: string): BlameLine[] {
     }
   }
   return result;
+}
+
+/** Parse `git stash list --format=%gd%x1f%gs` into ref/subject pairs. */
+export function parseStashList(out: string): { ref: string; subject: string }[] {
+  return out
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((l) => {
+      const [ref, subject] = l.split('\x1f');
+      return { ref, subject: subject ?? '' };
+    });
 }
 
 /** Field/record separators used by the `log` pretty-format. */
