@@ -194,7 +194,7 @@ export class Repository implements vscode.Disposable {
   }
 }
 
-function toItem(ch: FileChange, root: string): ChangeItem {
+export function toItem(ch: FileChange, root: string): ChangeItem {
   const code = ch.status.trim()[0] ?? '';
   const conflicted = isConflicted(ch.status);
   const labelMap: Record<string, string> = {
