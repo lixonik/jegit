@@ -797,6 +797,7 @@ export class VersionControlView implements vscode.WebviewViewProvider {
     const nonce = makeNonce();
     const cssUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vcs.css'));
     const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vcs.js'));
+    const graphUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'graph.js'));
     const codiconUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.context.extensionUri, 'media', 'codicons', 'codicon.css'),
     );
@@ -887,6 +888,7 @@ export class VersionControlView implements vscode.WebviewViewProvider {
   <div class="tabpanel" data-tab="console"><div class="console" id="console-log"></div></div>
 
   <div class="ctx-menu" id="ctxmenu"></div>
+  <script nonce="${nonce}" src="${graphUri}"></script>
   <script nonce="${nonce}" src="${jsUri}"></script>
 </body>
 </html>`;
