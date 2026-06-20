@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ChangelistStore } from '../src/model/changelistStore';
+import { ChangelistStore, DEFAULT_CHANGELIST_ID } from '../src/model/changelistStore';
 
 function fakeMemento() {
   const store = new Map<string, unknown>();
@@ -45,6 +45,41 @@ describe('ChangelistStore', () => {
     await s.reconcile(new Set(['a.ts']));
     expect(s.changelistOf('a.ts')).toBe(cl.id);
     expect(s.changelistOf('b.ts')).toBe(s.activeId);
+  });
+
+  it('switches the active list and ignores an unknown id', async () => {
+    const s = new ChangelistStore(fakeMemento());
+    const cl = await s.create('B');
+    await s.setActive(cl.id);
+    expect(s.activeId).toBe(cl.id);
+    await s.setActive('does-not-exist');
+    expect(s.activeId).toBe(cl.id);
+  });
+
+  it('protects the default changelist from removal', async () => {
+    const s = new ChangelistStore(fakeMemento());
+    const defaultId = s.changelists[0].id;
+    await s.remove(defaultId);
+    expect(s.getChangelist(defaultId)).toBeDefined();
+    expect(s.changelists).toHaveLength(1);
+  });
+
+  it('removing the active list resets active to default and drops its assignments', async () => {
+    const s = new ChangelistStore(fakeMemento());
+    const cl = await s.create('B');
+    await s.assign(['a.ts'], cl.id);
+    await s.setActive(cl.id);
+    await s.remove(cl.id);
+    expect(s.activeId).toBe(DEFAULT_CHANGELIST_ID);
+    expect(s.changelistOf('a.ts')).toBe(DEFAULT_CHANGELIST_ID);
+  });
+
+  it('falls back to the active list when an assigned list was removed', async () => {
+    const s = new ChangelistStore(fakeMemento());
+    const cl = await s.create('B');
+    await s.assign(['a.ts'], cl.id);
+    await s.remove(cl.id);
+    expect(s.changelistOf('a.ts')).toBe(s.activeId);
   });
 
   it('persists across instances via the memento', async () => {
