@@ -17,6 +17,7 @@ import { stashChanges, unstash } from './ui/stash';
 import { BlameController } from './ui/blame';
 import { showMergeResolver } from './ui/mergeResolver';
 import { showFileHistory } from './ui/history';
+import { isConflicted } from './util/status';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const folder = vscode.workspace.workspaceFolders?.[0];
@@ -352,7 +353,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   });
   reg('jegit.resolveConflicts', async () => {
     const status = await git.status().catch(() => []);
-    const conflicted = status.filter((f) => f.status.includes('U') || f.status === 'AA' || f.status === 'DD');
+    const conflicted = status.filter((f) => isConflicted(f.status));
     if (!conflicted.length) {
       vscode.window.showInformationMessage('JeGit: no conflicts to resolve.');
       return;

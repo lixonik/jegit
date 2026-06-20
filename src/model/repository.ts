@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { Git, FileChange } from '../git/git';
 import { ChangelistStore } from './changelistStore';
 import { ShelfStore, ShelfEntry } from './shelfStore';
+import { isConflicted } from '../util/status';
 
 export interface ChangeItem {
   path: string;
@@ -195,7 +196,7 @@ export class Repository implements vscode.Disposable {
 
 function toItem(ch: FileChange, root: string): ChangeItem {
   const code = ch.status.trim()[0] ?? '';
-  const conflicted = ch.status.includes('U') || ch.status === 'AA' || ch.status === 'DD';
+  const conflicted = isConflicted(ch.status);
   const labelMap: Record<string, string> = {
     M: 'Modified',
     A: 'Added',
