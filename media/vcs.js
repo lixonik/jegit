@@ -422,28 +422,9 @@
     }
   }
 
-  function buildTree(files) {
-    const root = { dirs: new Map(), files: [], path: '' };
-    for (const f of files) {
-      const parts = f.path.split('/');
-      let node = root;
-      for (let i = 0; i < parts.length - 1; i++) {
-        const seg = parts[i];
-        if (!node.dirs.has(seg)) {
-          node.dirs.set(seg, { dirs: new Map(), files: [], path: (node.path ? node.path + '/' : '') + seg });
-        }
-        node = node.dirs.get(seg);
-      }
-      node.files.push(f);
-    }
-    return root;
-  }
-
-  function collectFiles(node, out) {
-    for (const f of node.files) out.push(f.path);
-    for (const d of node.dirs.values()) collectFiles(d, out);
-    return out;
-  }
+  // buildTree and collectFiles live in media/tree.js (shared with the unit tests).
+  const buildTree = (files) => JeGitTree.buildTree(files);
+  const collectFiles = (node, out) => JeGitTree.collectFiles(node, out);
 
   function renderNode(node, cl, depth) {
     const dirNames = [...node.dirs.keys()].sort((a, b) => a.localeCompare(b));
