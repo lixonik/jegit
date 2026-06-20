@@ -544,38 +544,12 @@ export class Git {
     await this.raw(['reset', '--soft', 'HEAD~1']);
   }
 
-  async blame(
-    relPath: string,
-  ): Promise<{ hash: string; author: string; email: string; date: string; summary: string }[]> {
-    let out = '';
+  async blame(relPath: string): Promise<BlameLine[]> {
     try {
-      out = await this.raw(['blame', '--line-porcelain', '--', relPath]);
+      return parseBlame(await this.raw(['blame', '--line-porcelain', '--', relPath]));
     } catch {
       return [];
     }
-    const result: { hash: string; author: string; email: string; date: string; summary: string }[] = [];
-    let hash = '';
-    let author = '';
-    let email = '';
-    let summary = '';
-    let time = 0;
-    for (const line of out.split('\n')) {
-      if (/^[0-9a-f]{40} /.test(line)) {
-        hash = line.slice(0, 40);
-      } else if (line.startsWith('author ')) {
-        author = line.slice(7);
-      } else if (line.startsWith('author-mail ')) {
-        email = line.slice(12).replace(/^<|>$/g, '');
-      } else if (line.startsWith('author-time ')) {
-        time = parseInt(line.slice(12), 10) || 0;
-      } else if (line.startsWith('summary ')) {
-        summary = line.slice(8);
-      } else if (line.startsWith('\t')) {
-        const date = time ? new Date(time * 1000).toISOString().slice(0, 10) : '';
-        result.push({ hash, author, email, date, summary });
-      }
-    }
-    return result;
   }
 
   async fileLog(
@@ -812,6 +786,42 @@ export function parseRefs(s: string): string[] {
     .map((x) => x.trim())
     .filter(Boolean)
     .map((x) => (x.startsWith('HEAD -> ') ? x.slice('HEAD -> '.length) : x));
+}
+
+export interface BlameLine {
+  hash: string;
+  author: string;
+  email: string;
+  date: string;
+  summary: string;
+}
+
+/** Parse `git blame --line-porcelain` output into one entry per line.
+ *  Lines that reuse a commit's abbreviated header inherit its last-seen fields. */
+export function parseBlame(out: string): BlameLine[] {
+  const result: BlameLine[] = [];
+  let hash = '';
+  let author = '';
+  let email = '';
+  let summary = '';
+  let time = 0;
+  for (const line of out.split('\n')) {
+    if (/^[0-9a-f]{40} /.test(line)) {
+      hash = line.slice(0, 40);
+    } else if (line.startsWith('author ')) {
+      author = line.slice(7);
+    } else if (line.startsWith('author-mail ')) {
+      email = line.slice(12).replace(/^<|>$/g, '');
+    } else if (line.startsWith('author-time ')) {
+      time = parseInt(line.slice(12), 10) || 0;
+    } else if (line.startsWith('summary ')) {
+      summary = line.slice(8);
+    } else if (line.startsWith('\t')) {
+      const date = time ? new Date(time * 1000).toISOString().slice(0, 10) : '';
+      result.push({ hash, author, email, date, summary });
+    }
+  }
+  return result;
 }
 
 /** Field/record separators used by the `log` pretty-format. */
