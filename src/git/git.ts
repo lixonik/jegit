@@ -258,13 +258,7 @@ export class Git {
     const current = await this.currentBranch();
     const l = await this.raw(['for-each-ref', '--format=%(refname:short)', 'refs/heads']).catch(() => '');
     const r = await this.raw(['for-each-ref', '--format=%(refname:short)', 'refs/remotes']).catch(() => '');
-    const locals = l.split('\n').map((s) => s.trim()).filter(Boolean);
-    const remotes = r
-      .split('\n')
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .filter((x) => !x.endsWith('/HEAD'));
-    return { current, locals, remotes };
+    return { current, locals: parseRefList(l), remotes: parseRefList(r, true) };
   }
 
   async checkout(ref: string): Promise<void> {
@@ -806,6 +800,16 @@ export function parseBlame(out: string): BlameLine[] {
     }
   }
   return result;
+}
+
+/** Split `for-each-ref --format=%(refname:short)` output into ref names,
+ *  dropping blanks and (optionally) the symbolic `<remote>/HEAD` entries. */
+export function parseRefList(out: string, dropHead = false): string[] {
+  const refs = out
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return dropHead ? refs.filter((x) => !x.endsWith('/HEAD')) : refs;
 }
 
 /** Parse `git remote -v` into unique name/url pairs (using the fetch URL). */
