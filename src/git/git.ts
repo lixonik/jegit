@@ -192,33 +192,14 @@ export class Git {
 
   /** Commits for the Log graph; scope is `--all` or a branch ref. */
   async log(limit = 400, scope = '--all', pathFilter = ''): Promise<LogCommit[]> {
-    const FS = '\x1f';
-    const RS = '\x1e';
-    const fmt = ['%H', '%P', '%an', '%ae', '%cI', '%D', '%s'].join(FS) + RS;
+    const fmt = ['%H', '%P', '%an', '%ae', '%cI', '%D', '%s'].join(LOG_FS) + LOG_RS;
     const args = ['log', scope, `--max-count=${limit}`, '--date-order', `--pretty=format:${fmt}`];
     if (pathFilter) args.push('--', pathFilter);
-    let out = '';
     try {
-      out = await this.raw(args);
+      return parseLog(await this.raw(args));
     } catch {
       return [];
     }
-    const commits: LogCommit[] = [];
-    for (const rec of out.split(RS)) {
-      const line = rec.replace(/^\s+/, '');
-      if (!line) continue;
-      const [hash, parents, author, email, date, refs, subject] = line.split(FS);
-      commits.push({
-        hash,
-        parents: parents ? parents.split(' ').filter(Boolean) : [],
-        author,
-        email,
-        date,
-        subject: subject ?? '',
-        refs: parseRefs(refs ?? ''),
-      });
-    }
-    return commits;
   }
 
   /** Files changed by a commit, compared with its first parent. */
@@ -831,4 +812,29 @@ export function parseRefs(s: string): string[] {
     .map((x) => x.trim())
     .filter(Boolean)
     .map((x) => (x.startsWith('HEAD -> ') ? x.slice('HEAD -> '.length) : x));
+}
+
+/** Field/record separators used by the `log` pretty-format. */
+export const LOG_FS = '\x1f';
+export const LOG_RS = '\x1e';
+
+/** Parse the record stream produced by `git log --pretty=format` with the
+ *  fields hash, parents, author, email, ISO date, refs (%D), subject. */
+export function parseLog(out: string): LogCommit[] {
+  const commits: LogCommit[] = [];
+  for (const rec of out.split(LOG_RS)) {
+    const line = rec.replace(/^\s+/, '');
+    if (!line) continue;
+    const [hash, parents, author, email, date, refs, subject] = line.split(LOG_FS);
+    commits.push({
+      hash,
+      parents: parents ? parents.split(' ').filter(Boolean) : [],
+      author,
+      email,
+      date,
+      subject: subject ?? '',
+      refs: parseRefs(refs ?? ''),
+    });
+  }
+  return commits;
 }
