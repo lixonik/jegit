@@ -671,20 +671,11 @@ export class Git {
 
   /** Commits in a range, oldest first, for the interactive-rebase dialog. */
   async rangeCommits(range: string): Promise<{ hash: string; subject: string }[]> {
-    let out = '';
     try {
-      out = await this.raw(['log', '--reverse', '--format=%H%x1f%s', range]);
+      return parseRangeCommits(await this.raw(['log', '--reverse', '--format=%H%x1f%s', range]));
     } catch {
       return [];
     }
-    return out
-      .split('\n')
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .map((l) => {
-        const [hash, subject] = l.split('\x1f');
-        return { hash, subject: subject ?? '' };
-      });
   }
 
   /** Run an interactive rebase from a full prepared todo file (reorder dialog). */
@@ -831,6 +822,18 @@ export function parseRemotes(out: string): { name: string; url: string }[] {
     if (m) map.set(m[1], m[2]);
   }
   return [...map].map(([name, url]) => ({ name, url }));
+}
+
+/** Parse `git log --format=%H%x1f%s` into hash/subject pairs (rebase reorder list). */
+export function parseRangeCommits(out: string): { hash: string; subject: string }[] {
+  return out
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((l) => {
+      const [hash, subject] = l.split('\x1f');
+      return { hash, subject: subject ?? '' };
+    });
 }
 
 /** Parse `git stash list --format=%gd%x1f%gs` into ref/subject pairs. */
