@@ -67,9 +67,9 @@ async function branchActions(repo: Repository, ref: string, current: string, isR
     actions.push({ label: `$(git-pull-request) Rebase ${current} onto ${ref}`, a: 'rebase' });
     actions.push({ label: '$(git-compare) Compare with Current', a: 'compare' });
   }
-  if (!isRemote && ref !== current) {
+  if (!isRemote) {
     actions.push({ label: '$(edit) Rename...', a: 'rename' });
-    actions.push({ label: '$(trash) Delete', a: 'delete' });
+    if (ref !== current) actions.push({ label: '$(trash) Delete', a: 'delete' });
   }
   if (isRemote) {
     actions.push({ label: `$(link) Set as Upstream of ${current}`, a: 'setupstream' });
