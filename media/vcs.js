@@ -1101,16 +1101,19 @@
     hash.addEventListener('click', () => vscode.postMessage({ type: 'copyHash', hash: d.hash }));
     logDetails.appendChild(hash);
 
-    // Branches that contain this commit, like the JetBrains commit details.
-    if (d.branches && d.branches.length) {
-      const shown = d.branches.slice(0, 6);
-      const br = document.createElement('div');
-      br.className = 'det-meta det-branches';
-      br.textContent =
-        'In branches: ' + shown.join(', ') + (d.branches.length > shown.length ? ', +' + (d.branches.length - shown.length) + ' more' : '');
-      br.title = d.branches.join('\n');
-      logDetails.appendChild(br);
-    }
+    // Branches and tags that contain this commit, like the JetBrains commit details.
+    const containedIn = (label, cls, refs) => {
+      if (!refs || !refs.length) return;
+      const shown = refs.slice(0, 6);
+      const row = document.createElement('div');
+      row.className = 'det-meta ' + cls;
+      row.textContent =
+        label + shown.join(', ') + (refs.length > shown.length ? ', +' + (refs.length - shown.length) + ' more' : '');
+      row.title = refs.join('\n');
+      logDetails.appendChild(row);
+    };
+    containedIn('In branches: ', 'det-branches', d.branches);
+    containedIn('In tags: ', 'det-tags', d.tags);
 
     // Changes section with a file count, like JetBrains.
     const n = d.files.length;

@@ -356,13 +356,14 @@ export class VersionControlView implements vscode.WebviewViewProvider {
         break;
       }
       case 'commitDetails': {
-        const [files, body, committer, branches] = await Promise.all([
+        const [files, body, committer, branches, tags] = await Promise.all([
           this.repo.git.commitFiles(m.hash),
           this.repo.git.commitBody(m.hash),
           this.repo.git.commitCommitter(m.hash),
           this.repo.git.branchesContaining(m.hash),
+          this.repo.git.tagsContaining(m.hash),
         ]);
-        this.view?.webview.postMessage({ type: 'commitDetailsData', hash: m.hash, files, body, committer, branches });
+        this.view?.webview.postMessage({ type: 'commitDetailsData', hash: m.hash, files, body, committer, branches, tags });
         break;
       }
       case 'openRevDiff':
