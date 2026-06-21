@@ -81,19 +81,11 @@ export class Repository implements vscode.Disposable {
   }
 
   view(): RepositoryView {
-    const buckets = new Map<string, ChangeItem[]>();
-    for (const cl of this.store.changelists) buckets.set(cl.id, []);
-    for (const ch of this.changes) {
-      const id = this.store.changelistOf(ch.path);
-      (buckets.get(id) ?? buckets.get(this.store.activeId)!).push(toItem(ch, this.git.repoRoot));
-    }
-    const changelists = this.store.changelists.map((cl) => ({
-      id: cl.id,
-      name: cl.name,
-      active: cl.id === this.store.activeId,
-      files: (buckets.get(cl.id) ?? []).sort((a, b) => a.path.localeCompare(b.path)),
-    }));
-    return { branch: this._branch, total: this.changes.length, changelists };
+    return {
+      branch: this._branch,
+      total: this.changes.length,
+      changelists: groupChangesIntoLists(this.changes, this.store, this.git.repoRoot),
+    };
   }
 
   absUri(rel: string): vscode.Uri {
@@ -221,4 +213,25 @@ export function toItem(ch: FileChange, root: string): ChangeItem {
     conflicted,
     fsPath: path.join(root, ch.path),
   };
+}
+
+/** Group working-tree changes into their changelists (unassigned paths fall to the
+ *  active list), each list's files sorted by path. Pure: the store and root are inputs. */
+export function groupChangesIntoLists(
+  changes: FileChange[],
+  store: ChangelistStore,
+  root: string,
+): ChangelistView[] {
+  const buckets = new Map<string, ChangeItem[]>();
+  for (const cl of store.changelists) buckets.set(cl.id, []);
+  for (const ch of changes) {
+    const id = store.changelistOf(ch.path);
+    (buckets.get(id) ?? buckets.get(store.activeId)!).push(toItem(ch, root));
+  }
+  return store.changelists.map((cl) => ({
+    id: cl.id,
+    name: cl.name,
+    active: cl.id === store.activeId,
+    files: (buckets.get(cl.id) ?? []).sort((a, b) => a.path.localeCompare(b.path)),
+  }));
 }
