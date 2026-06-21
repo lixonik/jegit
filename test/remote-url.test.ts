@@ -14,6 +14,9 @@ describe('toWebUrl', () => {
   it('scp shorthand with nested subgroups', () => {
     expect(toWebUrl('git@gitlab.com:group/sub/repo.git')).toBe('https://gitlab.com/group/sub/repo');
   });
+  it('drops an explicit ssh port from the host', () => {
+    expect(toWebUrl('ssh://git@github.com:22/u/r.git')).toBe('https://github.com/u/r');
+  });
   it('https without a .git suffix', () => {
     expect(toWebUrl('https://github.com/u/r')).toBe('https://github.com/u/r');
   });

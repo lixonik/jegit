@@ -5,9 +5,9 @@ export function toWebUrl(remote: string): string {
   // scp shorthand: user@host:owner/repo
   const scp = /^[^@/]+@([^:/]+):(.+)$/.exec(s);
   if (scp) return `https://${scp[1]}/${scp[2]}`;
-  // ssh://user@host/owner/repo  or  https://host/owner/repo
+  // ssh://user@host[:port]/owner/repo  or  https://host/owner/repo
   const m = /^(?:ssh|https?):\/\/(?:[^@/]+@)?([^/]+)\/(.+)$/.exec(s);
-  if (m) return `https://${m[1]}/${m[2]}`;
+  if (m) return `https://${m[1].replace(/:\d+$/, '')}/${m[2]}`;
   return '';
 }
 
