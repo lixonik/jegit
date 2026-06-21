@@ -549,6 +549,9 @@
       }
       menu.push({ label: 'Show Diff', cmd: () => vscode.postMessage({ type: 'openDiff', path: f.path, untracked: f.untracked }) });
       menu.push({ label: 'Show History', cmd: () => vscode.postMessage({ type: 'fileHistory', path: f.path }) });
+      if (!f.untracked && !f.deleted) {
+        menu.push({ label: 'Annotate', cmd: () => vscode.postMessage({ type: 'annotate', path: f.path }) });
+      }
       menu.push({ label: 'Copy Relative Path', cmd: () => vscode.postMessage({ type: 'copyPath', path: f.path, absolute: false }) });
       menu.push({ label: 'Copy Path', cmd: () => vscode.postMessage({ type: 'copyPath', path: f.path, absolute: true }) });
       if (!f.untracked && !f.conflicted && !f.deleted) {

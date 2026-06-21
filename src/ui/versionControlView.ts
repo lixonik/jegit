@@ -83,6 +83,7 @@ type Incoming =
   | { type: 'branchCmd'; ref: string; action: string; isRemote: boolean }
   | { type: 'copySubject'; text: string }
   | { type: 'branchesContaining'; hash: string }
+  | { type: 'annotate'; path: string }
   | CommitMsg;
 
 /** The JetBrains-style Version Control tool window, rendered as a webview. */
@@ -372,6 +373,12 @@ export class VersionControlView implements vscode.WebviewViewProvider {
         await vscode.env.clipboard.writeText(m.text);
         vscode.window.showInformationMessage('JeGit: commit subject copied to clipboard.');
         break;
+      case 'annotate': {
+        const doc = await vscode.workspace.openTextDocument(this.repo.absUri(m.path));
+        await vscode.window.showTextDocument(doc);
+        await vscode.commands.executeCommand('jegit.toggleBlame');
+        break;
+      }
       case 'branchesContaining': {
         const containing = await this.repo.git.branchesContaining(m.hash);
         if (!containing.length) {
