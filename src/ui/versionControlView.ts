@@ -83,6 +83,7 @@ type Incoming =
   | { type: 'branchCmd'; ref: string; action: string; isRemote: boolean }
   | { type: 'copySubject'; text: string }
   | { type: 'branchesContaining'; hash: string }
+  | { type: 'tagsContaining'; hash: string }
   | { type: 'annotate'; path: string }
   | CommitMsg;
 
@@ -388,6 +389,25 @@ export class VersionControlView implements vscode.WebviewViewProvider {
         const pick = await vscode.window.showQuickPick(containing, {
           title: `Branches containing ${m.hash.slice(0, 10)}`,
           placeHolder: 'Select a branch to show its history',
+        });
+        if (pick) {
+          this.logScope = pick;
+          const limit = vscode.workspace.getConfiguration('jegit').get('log.maxCount', 400);
+          const commits = await this.repo.git.log(limit, this.logScope, this.logPath);
+          this.view?.webview.postMessage({ type: 'logData', commits });
+          await this.postBranches();
+        }
+        break;
+      }
+      case 'tagsContaining': {
+        const tags = await this.repo.git.tagsContaining(m.hash);
+        if (!tags.length) {
+          vscode.window.showInformationMessage(`JeGit: no tag contains ${m.hash.slice(0, 10)}.`);
+          break;
+        }
+        const pick = await vscode.window.showQuickPick(tags, {
+          title: `Tags containing ${m.hash.slice(0, 10)}`,
+          placeHolder: 'Select a tag to show its history',
         });
         if (pick) {
           this.logScope = pick;

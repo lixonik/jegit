@@ -403,12 +403,16 @@ export class Git {
   /** Tag names, newest first. */
   async tags(limit = 100): Promise<string[]> {
     try {
-      const out = await this.raw(['tag', '--sort=-creatordate']);
-      return out
-        .split('\n')
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .slice(0, limit);
+      return parseTagList(await this.raw(['tag', '--sort=-creatordate'])).slice(0, limit);
+    } catch {
+      return [];
+    }
+  }
+
+  /** Tags that contain the given commit (`git tag --contains`), newest first. */
+  async tagsContaining(hash: string): Promise<string[]> {
+    try {
+      return parseTagList(await this.raw(['tag', '--contains', hash, '--sort=-creatordate']));
     } catch {
       return [];
     }
@@ -866,6 +870,14 @@ export function parseBranchList(out: string): string[] {
     .split('\n')
     .map((l) => l.replace(/^[*+]?\s*/, '').trim())
     .filter((b) => b && !b.startsWith('('));
+}
+
+/** Parse a `git tag` listing (one tag per line) into trimmed, non-empty names. */
+export function parseTagList(out: string): string[] {
+  return out
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 /** Parse `git rev-list --left-right --count @{u}...HEAD` (left = behind upstream,

@@ -986,6 +986,7 @@
         { label: 'Copy Subject', cmd: () => vscode.postMessage({ type: 'copySubject', text: c.subject }) },
         { label: 'Open Commit on Remote', cmd: () => vscode.postMessage({ type: 'openCommitRemote', hash: c.hash }) },
         { label: 'Branches Containing Revision...', cmd: () => vscode.postMessage({ type: 'branchesContaining', hash: c.hash }) },
+        { label: 'Tags Containing Revision...', cmd: () => vscode.postMessage({ type: 'tagsContaining', hash: c.hash }) },
       );
       showCtx(e, menu);
     });
