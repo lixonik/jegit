@@ -82,6 +82,7 @@ type Incoming =
   | { type: 'commitStaged'; message: string; push: boolean }
   | { type: 'branchCmd'; ref: string; action: string; isRemote: boolean }
   | { type: 'copySubject'; text: string }
+  | { type: 'branchesContaining'; hash: string }
   | CommitMsg;
 
 /** The JetBrains-style Version Control tool window, rendered as a webview. */
@@ -371,6 +372,25 @@ export class VersionControlView implements vscode.WebviewViewProvider {
         await vscode.env.clipboard.writeText(m.text);
         vscode.window.showInformationMessage('JeGit: commit subject copied to clipboard.');
         break;
+      case 'branchesContaining': {
+        const containing = await this.repo.git.branchesContaining(m.hash);
+        if (!containing.length) {
+          vscode.window.showInformationMessage(`JeGit: no local branch contains ${m.hash.slice(0, 10)}.`);
+          break;
+        }
+        const pick = await vscode.window.showQuickPick(containing, {
+          title: `Branches containing ${m.hash.slice(0, 10)}`,
+          placeHolder: 'Select a branch to show its history',
+        });
+        if (pick) {
+          this.logScope = pick;
+          const limit = vscode.workspace.getConfiguration('jegit').get('log.maxCount', 400);
+          const commits = await this.repo.git.log(limit, this.logScope, this.logPath);
+          this.view?.webview.postMessage({ type: 'logData', commits });
+          await this.postBranches();
+        }
+        break;
+      }
       case 'openCommitRemote': {
         const remotes = await this.repo.git.remotesList();
         const origin = remotes.find((r) => r.name === 'origin') ?? remotes[0];

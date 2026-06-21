@@ -357,6 +357,15 @@ export class Git {
     }
   }
 
+  /** Local branches that contain the given commit (`git branch --contains`). */
+  async branchesContaining(hash: string): Promise<string[]> {
+    try {
+      return parseBranchList(await this.raw(['branch', '--contains', hash]));
+    } catch {
+      return [];
+    }
+  }
+
   async worktrees(): Promise<Worktree[]> {
     try {
       return parseWorktrees(await this.raw(['worktree', 'list', '--porcelain']));
@@ -846,6 +855,16 @@ export function parseMergedBranches(out: string): string[] {
     .split('\n')
     .filter((l) => !l.startsWith('*'))
     .map((l) => l.trim())
+    .filter((b) => b && !b.startsWith('('));
+}
+
+/** Parse `git branch --contains <hash>` (or plain `git branch`) into branch names,
+ *  stripping the `*` current and `+` other-worktree markers and dropping the
+ *  detached-HEAD `(...)` entry. Unlike parseMergedBranches, the current branch is kept. */
+export function parseBranchList(out: string): string[] {
+  return out
+    .split('\n')
+    .map((l) => l.replace(/^[*+]?\s*/, '').trim())
     .filter((b) => b && !b.startsWith('('));
 }
 
