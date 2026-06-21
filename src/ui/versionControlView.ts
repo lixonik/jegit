@@ -85,6 +85,7 @@ type Incoming =
   | { type: 'branchesContaining'; hash: string }
   | { type: 'tagsContaining'; hash: string }
   | { type: 'annotate'; path: string }
+  | { type: 'recallMessage' }
   | CommitMsg;
 
 /** The JetBrains-style Version Control tool window, rendered as a webview. */
@@ -378,6 +379,19 @@ export class VersionControlView implements vscode.WebviewViewProvider {
         const doc = await vscode.workspace.openTextDocument(this.repo.absUri(m.path));
         await vscode.window.showTextDocument(doc);
         await vscode.commands.executeCommand('jegit.toggleBlame');
+        break;
+      }
+      case 'recallMessage': {
+        const messages = await this.repo.git.recentCommitMessages();
+        if (!messages.length) {
+          vscode.window.showInformationMessage('JeGit: no recent commit messages.');
+          break;
+        }
+        const pick = await vscode.window.showQuickPick(
+          messages.map((msg) => ({ label: msg.split('\n')[0], detail: msg, value: msg })),
+          { title: 'Recent commit messages', placeHolder: 'Reuse a commit message' },
+        );
+        if (pick) this.view?.webview.postMessage({ type: 'setCommitMessage', text: pick.value });
         break;
       }
       case 'branchesContaining': {
@@ -897,6 +911,7 @@ export class VersionControlView implements vscode.WebviewViewProvider {
     <div class="commit-area">
       <textarea id="message" placeholder="Commit Message" rows="2"></textarea>
       <div class="commit-row">
+        <button class="tool" id="msg-history" title="Recall a recent commit message"><i class="codicon codicon-history"></i></button>
         <label class="opt"><input type="checkbox" id="amend" /> Amend</label>
         <label class="opt"><input type="checkbox" id="signoff" /> Sign-off</label>
         <input type="text" id="author" class="author-input" placeholder="Author (optional)" title="Commit as another author: Name &lt;email&gt;" />

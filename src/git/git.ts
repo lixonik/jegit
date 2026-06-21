@@ -409,6 +409,15 @@ export class Git {
     }
   }
 
+  /** Recent commit messages (full body), newest first, de-duplicated. */
+  async recentCommitMessages(limit = 20): Promise<string[]> {
+    try {
+      return parseRecentMessages(await this.raw(['log', '-n', String(limit), '--format=%B%x1e']));
+    } catch {
+      return [];
+    }
+  }
+
   /** Tags that contain the given commit (`git tag --contains`), newest first. */
   async tagsContaining(hash: string): Promise<string[]> {
     try {
@@ -870,6 +879,21 @@ export function parseBranchList(out: string): string[] {
     .split('\n')
     .map((l) => l.replace(/^[*+]?\s*/, '').trim())
     .filter((b) => b && !b.startsWith('('));
+}
+
+/** Parse `git log --format=%B%x1e` (RS-separated full messages) into trimmed,
+ *  de-duplicated messages, preserving newest-first order. */
+export function parseRecentMessages(out: string): string[] {
+  const seen = new Set<string>();
+  const res: string[] = [];
+  for (const rec of out.split('\x1e')) {
+    const msg = rec.trim();
+    if (msg && !seen.has(msg)) {
+      seen.add(msg);
+      res.push(msg);
+    }
+  }
+  return res;
 }
 
 /** Parse a `git tag` listing (one tag per line) into trimmed, non-empty names. */

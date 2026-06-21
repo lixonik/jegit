@@ -139,6 +139,7 @@
 
   // Local Changes toolbar
   $('tb-focus').addEventListener('click', () => msg.focus());
+  $('msg-history').addEventListener('click', () => vscode.postMessage({ type: 'recallMessage' }));
   $('tb-refresh').addEventListener('click', () => vscode.postMessage({ type: 'refresh' }));
   $('tb-new').addEventListener('click', () => vscode.postMessage({ type: 'newChangelist' }));
   $('tb-expand').addEventListener('click', () => {
@@ -1250,6 +1251,10 @@
         msg.value = amendLoadedMsg;
         updateCommitState();
       }
+    } else if (m.type === 'setCommitMessage') {
+      msg.value = m.text || '';
+      updateCommitState();
+      msg.focus();
     } else if (m.type === 'consoleData') {
       consoleLogEl.textContent = (m.lines || []).join('\n') + (m.lines && m.lines.length ? '\n' : '');
       consoleLogEl.scrollTop = consoleLogEl.scrollHeight;

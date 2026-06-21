@@ -37,6 +37,7 @@
     <div class="commit-area">
       <textarea id="message" placeholder="Commit Message" rows="2"></textarea>
       <div class="commit-row">
+        <button class="tool" id="msg-history" title="Recall a recent commit message"><i class="codicon codicon-history"></i></button>
         <label class="opt"><input type="checkbox" id="amend" /> Amend</label>
         <label class="opt"><input type="checkbox" id="signoff" /> Sign-off</label>
         <input type="text" id="author" class="author-input" placeholder="Author (optional)" />
@@ -130,6 +131,7 @@
             { id: 'sh1', name: 'WIP login refactor', date: '2026-06-05T12:00:00', files: ['src/app/auth.ts', 'src/app/login.ts'] },
           ] });
           else if (msg.type === 'requestConsole') post({ type: 'consoleData', lines: ['$ git status', '$ git log --oneline'] });
+          else if (msg.type === 'recallMessage') post({ type: 'setCommitMessage', text: 'Recalled: fix the thing' });
         },
         getState: function () { return savedState; },
         setState: function (s) { savedState = s; },
