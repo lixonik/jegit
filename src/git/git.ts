@@ -5,36 +5,10 @@ import * as path from 'path';
 import { parseNameStatusZ } from '../util/parse';
 import { parseRecentBranches } from '../util/recentBranches';
 
-export type GitOperation = 'merge' | 'rebase' | 'cherry-pick' | 'revert';
+import type { GitOperation, FileChange, LogCommit, CommitFile, BlameLine, Worktree } from '../model/git';
+export type { GitOperation, FileChange, LogCommit, CommitFile, BlameLine, Worktree } from '../model/git';
 
 const execFileAsync = promisify(execFile);
-
-export interface FileChange {
-  /** Path relative to the repo root, forward-slash separated. */
-  path: string;
-  /** Original path for renames/copies. */
-  origPath?: string;
-  /** Two-letter porcelain status code, e.g. ' M', '??', 'A ', 'R '. */
-  status: string;
-  staged: boolean;
-  untracked: boolean;
-}
-
-export interface LogCommit {
-  hash: string;
-  parents: string[];
-  author: string;
-  email: string;
-  date: string;
-  subject: string;
-  refs: string[];
-}
-
-export interface CommitFile {
-  status: string;
-  path: string;
-  origPath?: string;
-}
 
 /** Thin wrapper over the git CLI, scoped to a single repository root. */
 export class Git {
@@ -799,14 +773,6 @@ export function parseFileLog(
   return res;
 }
 
-export interface BlameLine {
-  hash: string;
-  author: string;
-  email: string;
-  date: string;
-  summary: string;
-}
-
 /** Parse `git blame --line-porcelain` output into one entry per line.
  *  Lines that reuse a commit's abbreviated header inherit its last-seen fields. */
 export function parseBlame(out: string): BlameLine[] {
@@ -833,12 +799,6 @@ export function parseBlame(out: string): BlameLine[] {
     }
   }
   return result;
-}
-
-export interface Worktree {
-  path: string;
-  branch: string;
-  head: string;
 }
 
 /** Parse `git worktree list --porcelain` records (worktree/HEAD/branch/detached). */
