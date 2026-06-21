@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { isNil, isDefined, notEmpty } from '../util/guards';
 
 export interface Changelist {
   id: string;
@@ -28,10 +29,10 @@ export class ChangelistStore {
 
   constructor(private readonly memento: vscode.Memento) {
     const saved = memento.get<PersistedState>(STORAGE_KEY);
-    if (saved && saved.changelists?.length) {
+    if (isDefined(saved) && notEmpty(saved.changelists)) {
       this.state = saved;
       this.state.assignments ??= {};
-      if (!this.getChangelist(this.state.activeId)) {
+      if (isNil(this.getChangelist(this.state.activeId))) {
         this.state.activeId = this.state.changelists[0].id;
       }
     } else {
@@ -58,7 +59,7 @@ export class ChangelistStore {
   /** Which changelist a path belongs to; unassigned paths fall to the active list. */
   changelistOf(path: string): string {
     const assigned = this.state.assignments[path];
-    if (assigned && this.getChangelist(assigned)) return assigned;
+    if (isDefined(assigned) && isDefined(this.getChangelist(assigned))) return assigned;
     return this.state.activeId;
   }
 
@@ -72,7 +73,7 @@ export class ChangelistStore {
 
   async rename(id: string, name: string): Promise<void> {
     const cl = this.getChangelist(id);
-    if (cl) {
+    if (isDefined(cl)) {
       cl.name = name;
       await this.persist();
     }
@@ -89,7 +90,7 @@ export class ChangelistStore {
   }
 
   async setActive(id: string): Promise<void> {
-    if (this.getChangelist(id)) {
+    if (isDefined(this.getChangelist(id))) {
       this.state.activeId = id;
       await this.persist();
     }
