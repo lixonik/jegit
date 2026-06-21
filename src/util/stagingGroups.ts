@@ -1,16 +1,9 @@
+import { StagedEntry, StagedSplit } from '../model/staging';
+export type { StagedEntry, StagedSplit } from '../model/staging';
+
 /** Split porcelain status entries into staged / unstaged / untracked groups
  *  for the optional index/staging-area mode. A file modified both in the index
  *  and the working tree (e.g. "MM") appears in both staged and unstaged. */
-export interface StagedEntry {
-  path: string;
-  letter: string;
-}
-export interface StagedSplit {
-  staged: StagedEntry[];
-  unstaged: StagedEntry[];
-  untracked: { path: string }[];
-}
-
 export function splitStaged(items: { path: string; status: string }[]): StagedSplit {
   const staged: StagedEntry[] = [];
   const unstaged: StagedEntry[] = [];
