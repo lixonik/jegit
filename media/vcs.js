@@ -1101,6 +1101,17 @@
     hash.addEventListener('click', () => vscode.postMessage({ type: 'copyHash', hash: d.hash }));
     logDetails.appendChild(hash);
 
+    // Branches that contain this commit, like the JetBrains commit details.
+    if (d.branches && d.branches.length) {
+      const shown = d.branches.slice(0, 6);
+      const br = document.createElement('div');
+      br.className = 'det-meta det-branches';
+      br.textContent =
+        'In branches: ' + shown.join(', ') + (d.branches.length > shown.length ? ', +' + (d.branches.length - shown.length) + ' more' : '');
+      br.title = d.branches.join('\n');
+      logDetails.appendChild(br);
+    }
+
     // Changes section with a file count, like JetBrains.
     const n = d.files.length;
     const header = document.createElement('div');
