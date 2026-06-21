@@ -357,25 +357,9 @@ export class Git {
     }
   }
 
-  async worktrees(): Promise<{ path: string; branch: string; head: string }[]> {
+  async worktrees(): Promise<Worktree[]> {
     try {
-      const out = await this.raw(['worktree', 'list', '--porcelain']);
-      const list: { path: string; branch: string; head: string }[] = [];
-      let cur: { path: string; branch: string; head: string } | null = null;
-      for (const line of out.split('\n')) {
-        if (line.startsWith('worktree ')) {
-          if (cur) list.push(cur);
-          cur = { path: line.slice(9).trim(), branch: '', head: '' };
-        } else if (cur && line.startsWith('HEAD ')) {
-          cur.head = line.slice(5).trim();
-        } else if (cur && line.startsWith('branch ')) {
-          cur.branch = line.slice(7).trim().replace('refs/heads/', '');
-        } else if (cur && line.trim() === 'detached') {
-          cur.branch = '(detached)';
-        }
-      }
-      if (cur) list.push(cur);
-      return list;
+      return parseWorktrees(await this.raw(['worktree', 'list', '--porcelain']));
     } catch {
       return [];
     }
@@ -817,6 +801,32 @@ export function parseBlame(out: string): BlameLine[] {
     }
   }
   return result;
+}
+
+export interface Worktree {
+  path: string;
+  branch: string;
+  head: string;
+}
+
+/** Parse `git worktree list --porcelain` records (worktree/HEAD/branch/detached). */
+export function parseWorktrees(out: string): Worktree[] {
+  const list: Worktree[] = [];
+  let cur: Worktree | null = null;
+  for (const line of out.split('\n')) {
+    if (line.startsWith('worktree ')) {
+      if (cur) list.push(cur);
+      cur = { path: line.slice(9).trim(), branch: '', head: '' };
+    } else if (cur && line.startsWith('HEAD ')) {
+      cur.head = line.slice(5).trim();
+    } else if (cur && line.startsWith('branch ')) {
+      cur.branch = line.slice(7).trim().replace('refs/heads/', '');
+    } else if (cur && line.trim() === 'detached') {
+      cur.branch = '(detached)';
+    }
+  }
+  if (cur) list.push(cur);
+  return list;
 }
 
 /** Parse `git branch --merged` into branch names, excluding the current branch
