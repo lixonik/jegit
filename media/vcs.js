@@ -24,6 +24,7 @@
   // Log state
   let logCommits = [];
   let graphRows = [];
+  let outgoingSet = new Set();
   let maxLanes = 1;
   let logLoaded = false;
   let selectedHash = null;
@@ -871,7 +872,7 @@
 
   function logRow(c, gr, withGraph) {
     const row = document.createElement('div');
-    row.className = 'log-row' + (c.hash === selectedHash ? ' selected' : '');
+    row.className = 'log-row' + (c.hash === selectedHash ? ' selected' : '') + (outgoingSet.has(c.hash) ? ' outgoing' : '');
     row.dataset.hash = c.hash;
     if (withGraph && gr) {
       row.appendChild(graphSvg(gr));
@@ -1193,6 +1194,8 @@
       if (m.hash === selectedHash) renderDetails(m);
     } else if (m.type === 'branchData') {
       renderBranches(m);
+      outgoingSet = new Set(m.outgoing || []);
+      if (logCommits.length) renderLog();
       const pathBtn = document.getElementById('log-path');
       if (pathBtn) pathBtn.classList.toggle('active', !!(m.logPath && m.logPath.length));
       const branchBtn = document.getElementById('log-branch');

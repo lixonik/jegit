@@ -413,6 +413,8 @@ input[type="checkbox"] {
 .log-row:hover .lg-graph circle { stroke: var(--hover); }
 .log-row.selected .lg-graph circle { stroke: var(--sel); }
 .lg-subject { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; padding-left: 4px; }
+/* Outgoing (not yet pushed to upstream) commits are shown in bold, like the JetBrains Log. */
+.log-row.outgoing .lg-subject { font-weight: 600; }
 .lg-meta { flex: 0 0 auto; color: var(--fg-dim); font-size: 11px; padding-left: 12px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
 .lg-date { flex: 0 0 auto; color: var(--fg-dim); font-size: 11px; padding-left: 12px; width: 92px; text-align: right; }
 .ref {

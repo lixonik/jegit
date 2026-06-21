@@ -505,6 +505,16 @@ export class Git {
     }
   }
 
+  /** Full hashes of commits on HEAD but not yet on its upstream (outgoing). */
+  async outgoingHashes(): Promise<string[]> {
+    try {
+      const out = await this.raw(['log', '--format=%H', '@{u}..HEAD']);
+      return out.split('\n').map((s) => s.trim()).filter(Boolean);
+    } catch {
+      return [];
+    }
+  }
+
   async headHash(): Promise<string> {
     try {
       return (await this.raw(['rev-parse', 'HEAD'])).trim();

@@ -129,11 +129,13 @@ export class VersionControlView implements vscode.WebviewViewProvider {
   private async postBranches(): Promise<void> {
     try {
       const { current, locals, remotes } = await this.repo.git.branches();
+      const outgoing = await this.repo.git.outgoingHashes();
       this.view?.webview.postMessage({
         type: 'branchData',
         current,
         locals,
         remotes,
+        outgoing,
         scope: this.logScope,
         logPath: this.logPath,
       });
