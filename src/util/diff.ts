@@ -16,13 +16,13 @@ export function splitHunks(diff: string): { header: string; hunks: Hunk[] } {
   let cur: Hunk | null = null;
   for (; i < lines.length; i++) {
     if (lines[i].startsWith('@@')) {
-      if (cur) hunks.push(cur);
+      if (cur !== null) hunks.push(cur);
       cur = { header: lines[i], lines: [lines[i]] };
-    } else if (cur) {
+    } else if (cur !== null) {
       cur.lines.push(lines[i]);
     }
   }
-  if (cur) hunks.push(cur);
+  if (cur !== null) hunks.push(cur);
   return { header: header.join('\n'), hunks };
 }
 

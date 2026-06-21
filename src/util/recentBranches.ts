@@ -1,3 +1,5 @@
+import { isNil } from './guards';
+
 /** Parse `git reflog --format=%gs` output into recently checked-out branch
  *  names, most recent first. Detached (40-hex) checkouts are skipped and
  *  duplicates are collapsed. Returns up to limit+1 names so the caller can
@@ -6,7 +8,7 @@ export function parseRecentBranches(reflog: string, limit = 5): string[] {
   const seen = new Set<string>();
   for (const line of reflog.split('\n')) {
     const m = /^checkout: moving from .+ to (.+)$/.exec(line.trim());
-    if (!m) continue;
+    if (isNil(m)) continue;
     const to = m[1];
     if (/^[0-9a-f]{40}$/.test(to)) continue;
     seen.add(to);

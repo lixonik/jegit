@@ -1,3 +1,5 @@
+import { isEmpty } from './guards';
+
 export interface NameStatus {
   /** Single-letter status code (M, A, D, R, C, ...). */
   status: string;
@@ -18,7 +20,7 @@ export function parseNameStatusZ(out: string): NameStatus[] {
   let i = 0;
   while (i < tokens.length) {
     const status = tokens[i];
-    if (!status) {
+    if (isEmpty(status)) {
       i++;
       continue;
     }

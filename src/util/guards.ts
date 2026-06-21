@@ -10,7 +10,7 @@ export function isNil<T>(value: Nullable<T>): value is Nil {
 }
 
 /** True when the value is neither null nor undefined. */
-export function isDefined<T>(value: Nullable<T>): value is T {
+export function isDefined<T>(value: T): value is NonNullable<T> {
   return !isNil(value);
 }
 
