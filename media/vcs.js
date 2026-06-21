@@ -895,7 +895,8 @@
 
     const date = document.createElement('span');
     date.className = 'lg-date';
-    date.textContent = (c.date || '').slice(0, 10);
+    date.textContent = JeGitDate.relativeDate(c.date);
+    date.title = (c.date || '').replace('T', ' ').slice(0, 16);
     row.appendChild(date);
 
     if (compareSel.has(c.hash)) row.classList.add('compare-sel');
