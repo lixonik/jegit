@@ -954,26 +954,13 @@
   }
 
   function refChip(ref) {
+    const info = JeGitRef.classifyRef(ref);
     const chip = document.createElement('span');
-    let kind = 'local';
-    let text = ref;
-    let icon = 'git-branch';
-    if (ref === 'HEAD') {
-      kind = 'head';
-      icon = 'target';
-    } else if (ref.startsWith('tag: ')) {
-      kind = 'tag';
-      text = ref.slice(5);
-      icon = 'tag';
-    } else if (ref.indexOf('/') >= 0) {
-      kind = 'remote';
-      icon = 'cloud';
-    }
-    chip.className = 'ref ' + kind;
+    chip.className = 'ref ' + info.kind;
     const i = document.createElement('i');
-    i.className = 'codicon codicon-' + icon;
+    i.className = 'codicon codicon-' + info.icon;
     const t = document.createElement('span');
-    t.textContent = text;
+    t.textContent = info.text;
     chip.append(i, t);
     return chip;
   }

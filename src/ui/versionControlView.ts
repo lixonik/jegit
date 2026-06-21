@@ -801,6 +801,7 @@ export class VersionControlView implements vscode.WebviewViewProvider {
     const treeUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'tree.js'));
     const logfilterUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'logfilter.js'));
     const datefmtUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'datefmt.js'));
+    const refchipUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'media', 'refchip.js'));
     const codiconUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.context.extensionUri, 'media', 'codicons', 'codicon.css'),
     );
@@ -895,6 +896,7 @@ export class VersionControlView implements vscode.WebviewViewProvider {
   <script nonce="${nonce}" src="${treeUri}"></script>
   <script nonce="${nonce}" src="${logfilterUri}"></script>
   <script nonce="${nonce}" src="${datefmtUri}"></script>
+  <script nonce="${nonce}" src="${refchipUri}"></script>
   <script nonce="${nonce}" src="${jsUri}"></script>
 </body>
 </html>`;
