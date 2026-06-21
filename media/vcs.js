@@ -824,15 +824,19 @@
     });
     host.appendChild(g);
     if (collapsed) return;
-    for (const b of branches) {
+
+    // Render the branches as a '/'-separated tree (like the JetBrains Log branch
+    // panel): path segments become folder labels and leaves stay clickable rows.
+    const makeBranchRow = (b, depth) => {
       const row = document.createElement('div');
       const isCurrent = !isRemote && b === current;
       row.className = 'lb-row' + (scope === b ? ' selected' : '') + (isCurrent ? ' current' : '');
+      row.style.paddingLeft = 8 + depth * 14 + 'px';
       const i = document.createElement('i');
       i.className = 'codicon ' + (isRemote ? 'codicon-cloud' : 'codicon-git-branch');
       const nm = document.createElement('span');
       nm.className = 'lb-name';
-      nm.textContent = b;
+      nm.textContent = b.split('/').pop();
       row.append(i, nm);
       row.title = b;
       row.addEventListener('click', () => vscode.postMessage({ type: 'setLogScope', scope: b }));
@@ -854,8 +858,25 @@
         if (isRemote) menu.push({ label: 'Set as Upstream of Current', cmd: () => vscode.postMessage({ type: 'branchCmd', ref: b, action: 'setupstream', isRemote: isRemote }) });
         showCtx(e, menu);
       });
-      host.appendChild(row);
-    }
+      return row;
+    };
+    const renderTree = (node, depth) => {
+      for (const [seg, child] of node.dirs) {
+        const dir = document.createElement('div');
+        dir.className = 'lb-row lb-dir';
+        dir.style.paddingLeft = 8 + depth * 14 + 'px';
+        const di = document.createElement('i');
+        di.className = 'codicon codicon-folder';
+        const dn = document.createElement('span');
+        dn.className = 'lb-name';
+        dn.textContent = seg;
+        dir.append(di, dn);
+        host.appendChild(dir);
+        renderTree(child, depth + 1);
+      }
+      for (const f of node.files) host.appendChild(makeBranchRow(f.path, depth));
+    };
+    renderTree(JeGitTree.buildTree(branches.map((b) => ({ path: b }))), 0);
   }
 
   function renderLog() {
