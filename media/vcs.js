@@ -759,7 +759,7 @@
   // ---- Log rendering ----
   function populateUsers() {
     const cur = logUser.value;
-    const authors = [...new Set(logCommits.map((c) => c.author))].sort((a, b) => a.localeCompare(b));
+    const authors = JeGitLog.uniqueAuthors(logCommits);
     logUser.innerHTML = '';
     const all = document.createElement('option');
     all.value = '';

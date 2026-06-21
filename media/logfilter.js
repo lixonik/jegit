@@ -23,5 +23,11 @@
     }
     return true;
   }
-  return { commitMatches: commitMatches };
+  // Distinct commit authors, locale-sorted -- the options for the User filter.
+  function uniqueAuthors(commits) {
+    return [...new Set(commits.map(function (c) { return c.author; }))].sort(function (a, b) {
+      return a.localeCompare(b);
+    });
+  }
+  return { commitMatches: commitMatches, uniqueAuthors: uniqueAuthors };
 });

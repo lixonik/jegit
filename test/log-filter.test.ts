@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import logfilter from '../media/logfilter.js';
 
-const { commitMatches } = logfilter;
+const { commitMatches, uniqueAuthors } = logfilter;
 const commit = (over: Partial<{ subject: string; author: string; hash: string; date: string }> = {}) => ({
   subject: 'Fix bug',
   author: 'Ann',
@@ -38,5 +38,21 @@ describe('commitMatches', () => {
     const c = commit({ author: 'Ann', subject: 'Add feature' });
     expect(commitMatches(c, { user: 'Ann', text: 'feature' })).toBe(true);
     expect(commitMatches(c, { user: 'Ann', text: 'missing' })).toBe(false);
+  });
+});
+
+describe('uniqueAuthors', () => {
+  it('dedupes authors and sorts them case-insensitively by locale', () => {
+    const commits = [
+      commit({ author: 'Boris' }),
+      commit({ author: 'ann' }),
+      commit({ author: 'Boris' }),
+      commit({ author: 'Carla' }),
+    ];
+    expect(uniqueAuthors(commits)).toEqual(['ann', 'Boris', 'Carla']);
+  });
+
+  it('returns empty for no commits', () => {
+    expect(uniqueAuthors([])).toEqual([]);
   });
 });
