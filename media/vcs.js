@@ -923,7 +923,16 @@
     const subject = document.createElement('span');
     subject.className = 'lg-subject';
     for (const ref of c.refs) subject.appendChild(refChip(ref));
-    subject.appendChild(document.createTextNode(c.subject));
+    for (const seg of JeGitLog.highlightSegments(c.subject, logSearch.value)) {
+      if (seg.hl) {
+        const hl = document.createElement('span');
+        hl.className = 'lg-hl';
+        hl.textContent = seg.text;
+        subject.appendChild(hl);
+      } else if (seg.text) {
+        subject.appendChild(document.createTextNode(seg.text));
+      }
+    }
     row.appendChild(subject);
 
     const author = document.createElement('span');

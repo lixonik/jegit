@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import logfilter from '../media/logfilter.js';
 
-const { commitMatches, uniqueAuthors } = logfilter;
+const { commitMatches, uniqueAuthors, highlightSegments } = logfilter;
 const commit = (over: Partial<{ subject: string; author: string; hash: string; date: string }> = {}) => ({
   subject: 'Fix bug',
   author: 'Ann',
@@ -54,5 +54,37 @@ describe('uniqueAuthors', () => {
 
   it('returns empty for no commits', () => {
     expect(uniqueAuthors([])).toEqual([]);
+  });
+});
+
+describe('highlightSegments', () => {
+  it('returns a single unhighlighted segment when there is no query', () => {
+    expect(highlightSegments('Fix login bug', '')).toEqual([{ text: 'Fix login bug', hl: false }]);
+  });
+
+  it('marks a case-insensitive match in the middle', () => {
+    expect(highlightSegments('Fix Login bug', 'login')).toEqual([
+      { text: 'Fix ', hl: false },
+      { text: 'Login', hl: true },
+      { text: ' bug', hl: false },
+    ]);
+  });
+
+  it('marks every occurrence', () => {
+    expect(highlightSegments('aXaXa', 'x')).toEqual([
+      { text: 'a', hl: false },
+      { text: 'X', hl: true },
+      { text: 'a', hl: false },
+      { text: 'X', hl: true },
+      { text: 'a', hl: false },
+    ]);
+  });
+
+  it('highlights a match at the very start and end', () => {
+    expect(highlightSegments('abc', 'abc')).toEqual([{ text: 'abc', hl: true }]);
+  });
+
+  it('returns one plain segment when the query is absent from the text', () => {
+    expect(highlightSegments('hello', 'zzz')).toEqual([{ text: 'hello', hl: false }]);
   });
 });

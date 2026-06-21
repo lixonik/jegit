@@ -29,5 +29,26 @@
       return a.localeCompare(b);
     });
   }
-  return { commitMatches: commitMatches, uniqueAuthors: uniqueAuthors };
+  // Split text into { text, hl } segments, marking every case-insensitive run that
+  // matches query (for highlighting search hits). No query -> one unhighlighted span.
+  function highlightSegments(text, query) {
+    const q = (query || '').trim();
+    if (!q) return [{ text: text, hl: false }];
+    const segs = [];
+    const lower = text.toLowerCase();
+    const ql = q.toLowerCase();
+    let i = 0;
+    while (i <= text.length) {
+      const idx = lower.indexOf(ql, i);
+      if (idx === -1) {
+        if (i < text.length) segs.push({ text: text.slice(i), hl: false });
+        break;
+      }
+      if (idx > i) segs.push({ text: text.slice(i, idx), hl: false });
+      segs.push({ text: text.slice(idx, idx + ql.length), hl: true });
+      i = idx + ql.length;
+    }
+    return segs.length ? segs : [{ text: text, hl: false }];
+  }
+  return { commitMatches: commitMatches, uniqueAuthors: uniqueAuthors, highlightSegments: highlightSegments };
 });

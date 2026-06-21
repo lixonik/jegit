@@ -415,6 +415,8 @@ input[type="checkbox"] {
 .lg-subject { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; padding-left: 4px; }
 /* Outgoing (not yet pushed to upstream) commits are shown in bold, like the JetBrains Log. */
 .log-row.outgoing .lg-subject { font-weight: 600; }
+/* Highlight the substring matching the Log search box. */
+.lg-hl { background: var(--vscode-editor-findMatchHighlightBackground, rgba(234, 92, 0, 0.33)); border-radius: 2px; }
 .lg-meta { flex: 0 0 auto; color: var(--fg-dim); font-size: 11px; padding-left: 12px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
 .lg-date { flex: 0 0 auto; color: var(--fg-dim); font-size: 11px; padding-left: 12px; width: 92px; text-align: right; }
 .ref {
