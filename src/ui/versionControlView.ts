@@ -81,6 +81,7 @@ type Incoming =
   | { type: 'stage' | 'unstage'; paths: string[] }
   | { type: 'commitStaged'; message: string; push: boolean }
   | { type: 'branchCmd'; ref: string; action: string; isRemote: boolean }
+  | { type: 'copySubject'; text: string }
   | CommitMsg;
 
 /** The JetBrains-style Version Control tool window, rendered as a webview. */
@@ -365,6 +366,10 @@ export class VersionControlView implements vscode.WebviewViewProvider {
       case 'copyHash':
         await vscode.env.clipboard.writeText(m.hash);
         vscode.window.showInformationMessage(`JeGit: copied ${m.hash.slice(0, 10)}`);
+        break;
+      case 'copySubject':
+        await vscode.env.clipboard.writeText(m.text);
+        vscode.window.showInformationMessage('JeGit: commit subject copied to clipboard.');
         break;
       case 'openCommitRemote': {
         const remotes = await this.repo.git.remotesList();

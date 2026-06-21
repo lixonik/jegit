@@ -980,6 +980,7 @@
         { label: 'Create Patch...', cmd: () => vscode.postMessage({ type: 'createPatchFromCommit', hash: c.hash }) },
         { label: 'Push All up to Here...', cmd: () => vscode.postMessage({ type: 'pushUpTo', hash: c.hash }) },
         { label: 'Copy Revision Number', cmd: () => vscode.postMessage({ type: 'copyHash', hash: c.hash }) },
+        { label: 'Copy Subject', cmd: () => vscode.postMessage({ type: 'copySubject', text: c.subject }) },
         { label: 'Open Commit on Remote', cmd: () => vscode.postMessage({ type: 'openCommitRemote', hash: c.hash }) },
       );
       showCtx(e, menu);
