@@ -35,6 +35,11 @@ describe('isEmpty / notEmpty', () => {
     expect(isEmpty(new Map([['a', 1]]))).toBe(false);
   });
 
+  it('reports emptiness of plain objects by own keys', () => {
+    expect(isEmpty({})).toBe(true);
+    expect(isEmpty({ a: 1 })).toBe(false);
+  });
+
   it('counts nil as empty', () => {
     expect(isEmpty(null)).toBe(true);
     expect(isEmpty(undefined)).toBe(true);

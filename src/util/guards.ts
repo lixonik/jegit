@@ -2,31 +2,33 @@
 // conditionals (e.g. `if (isDefined(x))` instead of `if (x)`), so the intent --
 // "not nil" vs "not empty" vs "non-zero" -- is never ambiguous.
 
-/** A value that has a meaningful notion of emptiness. */
-type Sized = string | readonly unknown[] | Map<unknown, unknown> | Set<unknown>;
+import { Nil, Nullable, SizedItem } from '../model/common';
 
 /** True when the value is null or undefined. */
-export function isNil(value: unknown): value is null | undefined {
+export function isNil<T>(value: Nullable<T>): value is Nil {
   return value === null || value === undefined;
 }
 
 /** True when the value is neither null nor undefined. */
-export function isDefined<T>(value: T): value is NonNullable<T> {
+export function isDefined<T>(value: Nullable<T>): value is T {
   return !isNil(value);
 }
 
-/** True when a string, array, Map or Set has no elements. Nil counts as empty. */
-export function isEmpty(value: Sized | null | undefined): boolean {
+/** True when a string, array, Map, Set or plain object has no elements/keys. Nil counts as empty. */
+export function isEmpty(value: Nullable<SizedItem>): boolean {
   if (isNil(value)) {
     return true;
   }
   if (typeof value === 'string' || Array.isArray(value)) {
     return value.length === 0;
   }
-  return (value as Map<unknown, unknown> | Set<unknown>).size === 0;
+  if (value instanceof Map || value instanceof Set) {
+    return value.size === 0;
+  }
+  return Object.keys(value).length === 0;
 }
 
-/** True when a string, array, Map or Set has at least one element. */
-export function notEmpty(value: Sized | null | undefined): boolean {
+/** True when a string, array, Map, Set or plain object has at least one element/key. */
+export function notEmpty(value: Nullable<SizedItem>): boolean {
   return !isEmpty(value);
 }
