@@ -3,7 +3,7 @@
   // Persisted UI layout (pane widths, active tab, branch-group collapse), so the
   // Log layout survives reloads like a JetBrains tool window.
   const ui = Object.assign(
-    { branchesW: 0, detailsW: 0, tab: '', branchCollapsed: {}, tabOrder: [] },
+    { branchesW: 0, detailsW: 0, tab: '', branchCollapsed: {}, branchDirCollapsed: {}, tabOrder: [] },
     vscode.getState() || {},
   );
   function saveUi() {
@@ -778,6 +778,7 @@
   // ---- Log: JetBrains-style left branches tree ----
   let branchInfo = null;
   const branchCollapsed = Object.assign({ Local: false, Remote: false }, ui.branchCollapsed || {});
+  const branchDirCollapsed = Object.assign({}, ui.branchDirCollapsed || {});
   function renderBranches(data) {
     if (data) branchInfo = data;
     const host = document.getElementById('log-branches');
@@ -862,17 +863,28 @@
     };
     const renderTree = (node, depth) => {
       for (const [seg, child] of node.dirs) {
+        const key = label + ':' + child.path;
+        const dirCollapsed = !!branchDirCollapsed[key];
         const dir = document.createElement('div');
         dir.className = 'lb-row lb-dir';
         dir.style.paddingLeft = 8 + depth * 14 + 'px';
+        const chev = document.createElement('span');
+        chev.className = 'chev' + (dirCollapsed ? ' collapsed' : '');
+        chev.textContent = '▾';
         const di = document.createElement('i');
         di.className = 'codicon codicon-folder';
         const dn = document.createElement('span');
         dn.className = 'lb-name';
         dn.textContent = seg;
-        dir.append(di, dn);
+        dir.append(chev, di, dn);
+        dir.addEventListener('click', () => {
+          branchDirCollapsed[key] = !branchDirCollapsed[key];
+          ui.branchDirCollapsed = branchDirCollapsed;
+          saveUi();
+          renderBranches();
+        });
         host.appendChild(dir);
-        renderTree(child, depth + 1);
+        if (!dirCollapsed) renderTree(child, depth + 1);
       }
       for (const f of node.files) host.appendChild(makeBranchRow(f.path, depth));
     };
