@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { isNil } from '../util/guards';
 
 export interface ShelfEntry {
   id: string;
@@ -58,7 +59,7 @@ export class ShelfStore {
 
   async rename(id: string, name: string): Promise<void> {
     const e = this.state.entries.find((x) => x.id === id);
-    if (!e) return;
+    if (isNil(e)) return;
     e.name = name;
     await this.memento.update(STORAGE_KEY, this.state);
   }

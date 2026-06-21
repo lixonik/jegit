@@ -5,6 +5,7 @@ import { Git, FileChange } from '../git/git';
 import { ChangelistStore } from './changelistStore';
 import { ShelfStore, ShelfEntry } from './shelfStore';
 import { isConflicted } from '../util/status';
+import { isNil, isDefined, isEmpty, notEmpty } from '../util/guards';
 
 export interface ChangeItem {
   path: string;
@@ -67,7 +68,7 @@ export class Repository implements vscode.Disposable {
   }
 
   scheduleRefresh(): void {
-    if (this.timer) clearTimeout(this.timer);
+    if (isDefined(this.timer)) clearTimeout(this.timer);
     this.timer = setTimeout(() => void this.refresh(), 350);
   }
 
@@ -136,16 +137,16 @@ export class Repository implements vscode.Disposable {
     const untracked = items.filter((i) => i.untracked).map((i) => i.path);
     const all = items.map((i) => i.path);
 
-    if (untracked.length) await this.git.addIntentToAdd(untracked);
+    if (notEmpty(untracked)) await this.git.addIntentToAdd(untracked);
     const patch = await this.git.diffHead(all);
-    if (!patch.trim()) {
-      if (untracked.length) await this.git.raw(['reset', '-q', '--', ...untracked]).catch(() => undefined);
+    if (isEmpty(patch.trim())) {
+      if (notEmpty(untracked)) await this.git.raw(['reset', '-q', '--', ...untracked]).catch(() => undefined);
       throw new Error('nothing to shelve in the selected files');
     }
     await this.shelf.add(name, all, patch);
 
-    if (tracked.length) await this.git.raw(['checkout', 'HEAD', '--', ...tracked]);
-    if (untracked.length) {
+    if (notEmpty(tracked)) await this.git.raw(['checkout', 'HEAD', '--', ...tracked]);
+    if (notEmpty(untracked)) {
       await this.git.raw(['reset', '-q', '--', ...untracked]).catch(() => undefined);
       for (const rel of untracked) {
         try {
@@ -165,7 +166,7 @@ export class Repository implements vscode.Disposable {
    */
   async unshelve(id: string, keep = false): Promise<'clean' | 'conflicts' | 'missing'> {
     const entry = this.shelf.get(id);
-    if (!entry) return 'missing';
+    if (isNil(entry)) return 'missing';
     const result = await this.git.applyPatch3way(this.shelf.patchPath(id));
     if (result === 'clean' && !keep) await this.shelf.remove(id);
     await this.refresh();
@@ -181,7 +182,7 @@ export class Repository implements vscode.Disposable {
   }
 
   dispose(): void {
-    if (this.timer) clearTimeout(this.timer);
+    if (isDefined(this.timer)) clearTimeout(this.timer);
     this.disposables.forEach((d) => d.dispose());
   }
 }
