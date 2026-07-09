@@ -8,6 +8,25 @@ export const window: Record<string, (...args: unknown[]) => Promise<unknown>> = 
   showErrorMessage: async () => undefined,
 };
 
+export const commands: Record<string, (...args: unknown[]) => Promise<unknown>> = {
+  executeCommand: async () => undefined,
+};
+
+export const env = {
+  clipboard: { writeText: async (_text: string): Promise<void> => undefined },
+  openExternal: async (_uri: unknown): Promise<boolean> => true,
+};
+
+export const workspace = {
+  getConfiguration: (_section?: string) => ({ get: <T>(_key: string, fallback: T): T => fallback }),
+};
+
+export const Uri = {
+  from: (parts: object) => parts,
+  parse: (value: string) => ({ value }),
+  joinPath: (...parts: unknown[]) => ({ fsPath: parts.map(String).join('/') }),
+};
+
 export class EventEmitter<T> {
   private listeners: ((e: T) => void)[] = [];
   readonly event = (listener: (e: T) => void) => {
