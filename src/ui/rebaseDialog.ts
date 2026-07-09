@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { Repository } from '../model/repository';
+import { validateRebasePlan, renderRebaseTodo } from '../util/rebasePlan';
+import { isDefined } from '../util/guards';
 
 /**
  * A small webview dialog for interactive rebase: reorder the commits from the
@@ -33,17 +35,13 @@ export async function showRebaseDialog(
     }
     if (m.type !== 'start' || !m.plan) return;
 
-    const kept = m.plan.filter((p) => p.action !== 'drop');
-    if (!kept.length) {
-      vscode.window.showWarningMessage('JeGit: keep at least one commit.');
-      return;
-    }
-    if (kept[0].action !== 'pick') {
-      vscode.window.showWarningMessage('JeGit: the first kept commit must be "pick".');
+    const problem = validateRebasePlan(m.plan);
+    if (isDefined(problem)) {
+      vscode.window.showWarningMessage(`JeGit: ${problem}.`);
       return;
     }
 
-    const todo = m.plan.map((p) => `${p.action} ${p.hash}`).join('\n') + '\n';
+    const todo = renderRebaseTodo(m.plan);
     const tmp = path.join(os.tmpdir(), `jegit-rebase-${Date.now()}.txt`);
     try {
       fs.writeFileSync(tmp, todo, 'utf8');
