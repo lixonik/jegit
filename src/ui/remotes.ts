@@ -3,7 +3,7 @@ import { Repository } from '../model/repository';
 
 /** Manage git remotes: list, add, change URL, rename, remove. */
 export async function manageRemotes(repo: Repository): Promise<void> {
-  const remotes = await repo.git.remotesList();
+  const remotes = await repo.git.remote.list();
   type Item = vscode.QuickPickItem & { name?: string; action?: string };
   const items: Item[] = [{ label: '$(add) Add remote...', action: 'add' }];
   for (const r of remotes) items.push({ label: r.name, description: r.url, name: r.name });
@@ -17,7 +17,7 @@ export async function manageRemotes(repo: Repository): Promise<void> {
       if (!name) return;
       const url = await vscode.window.showInputBox({ prompt: 'Remote URL', placeHolder: 'https://github.com/user/repo.git' });
       if (!url) return;
-      await repo.git.remoteAdd(name.trim(), url.trim());
+      await repo.git.remote.add(name.trim(), url.trim());
       vscode.window.showInformationMessage(`JeGit: added remote ${name.trim()}.`);
       return;
     }
@@ -37,15 +37,15 @@ export async function manageRemotes(repo: Repository): Promise<void> {
     if (act.a === 'url') {
       const url = await vscode.window.showInputBox({ prompt: `New URL for ${pick.name}`, value: pick.description });
       if (!url) return;
-      await repo.git.remoteSetUrl(pick.name, url.trim());
+      await repo.git.remote.setUrl(pick.name, url.trim());
     } else if (act.a === 'rename') {
       const nn = await vscode.window.showInputBox({ prompt: `Rename ${pick.name} to`, value: pick.name });
       if (!nn) return;
-      await repo.git.remoteRename(pick.name, nn.trim());
+      await repo.git.remote.rename(pick.name, nn.trim());
     } else {
       const ok = await vscode.window.showWarningMessage(`Remove remote ${pick.name}?`, { modal: true }, 'Remove');
       if (ok !== 'Remove') return;
-      await repo.git.remoteRemove(pick.name);
+      await repo.git.remote.remove(pick.name);
     }
     vscode.window.showInformationMessage(`JeGit: remote ${pick.name} updated.`);
   } catch (err) {

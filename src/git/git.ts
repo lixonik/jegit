@@ -3,6 +3,7 @@ import * as path from 'path';
 import { execGit } from './runner';
 import { GitStash } from './stash';
 import { GitWorktrees } from './worktrees';
+import { GitRemotes } from './remotes';
 import { parseNameStatusZ } from '../util/parse';
 import { parseRecentBranches } from '../util/recentBranches';
 import {
@@ -37,6 +38,7 @@ export class Git {
 
   readonly stash = new GitStash((args) => this.raw(args));
   readonly worktree = new GitWorktrees((args) => this.raw(args));
+  readonly remote = new GitRemotes((args) => this.raw(args));
 
   async raw(args: string[]): Promise<string> {
     try {
@@ -129,25 +131,6 @@ export class Git {
     await this.raw(['push', '--tags']);
   }
 
-  async remotesList(): Promise<{ name: string; url: string }[]> {
-    try {
-      return parseRemotes(await this.raw(['remote', '-v']));
-    } catch {
-      return [];
-    }
-  }
-  async remoteAdd(name: string, url: string): Promise<void> {
-    await this.raw(['remote', 'add', name, url]);
-  }
-  async remoteRemove(name: string): Promise<void> {
-    await this.raw(['remote', 'remove', name]);
-  }
-  async remoteRename(oldName: string, newName: string): Promise<void> {
-    await this.raw(['remote', 'rename', oldName, newName]);
-  }
-  async remoteSetUrl(name: string, url: string): Promise<void> {
-    await this.raw(['remote', 'set-url', name, url]);
-  }
 
   /** Contents of a path at HEAD, or '' if it does not exist there (new file). */
   async showHead(relPath: string): Promise<string> {

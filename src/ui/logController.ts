@@ -257,7 +257,7 @@ export class LogController {
   }
 
   private async openCommitOnRemote(hash: string): Promise<void> {
-    const remotes = await this.repo.git.remotesList();
+    const remotes = await this.repo.git.remote.list();
     const origin = remotes.find((r) => r.name === 'origin') ?? remotes[0];
     const web = isDefined(origin) ? toWebUrl(origin.url) : '';
     if (isEmpty(web)) {

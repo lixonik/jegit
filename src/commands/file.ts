@@ -35,7 +35,7 @@ async function showActiveFileHistory(repo: Repository): Promise<void> {
 async function openActiveFileOnRemote(repo: Repository): Promise<void> {
   const uri = activeFileUri('JeGit: open a file first.');
   if (isNil(uri)) return;
-  const remotes = await repo.git.remotesList();
+  const remotes = await repo.git.remote.list();
   const origin = remotes.find((r) => r.name === 'origin') ?? remotes[0];
   const web = isDefined(origin) ? toWebUrl(origin.url) : '';
   if (isEmpty(web)) {
