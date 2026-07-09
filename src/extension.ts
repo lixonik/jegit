@@ -5,6 +5,7 @@ import { registerBootstrapCommands } from './commands/bootstrap';
 import { registerPatchCommands } from './commands/patch';
 import { registerOperationCommands } from './commands/operations';
 import { registerRemoteCommands } from './commands/remote';
+import { registerFileCommands } from './commands/file';
 import { ChangelistStore } from './model/changelistStore';
 import { ShelfStore } from './model/shelfStore';
 import { Repository } from './model/repository';
@@ -13,11 +14,8 @@ import { VersionControlView } from './ui/versionControlView';
 import { showBranches } from './ui/branches';
 import { manageRemotes } from './ui/remotes';
 import { manageWorktrees } from './ui/worktrees';
-import { toWebUrl, fileWebUrl } from './util/remoteUrl';
 import { stashChanges, unstash } from './ui/stash';
-import { BlameController } from './ui/blame';
 import { showMergeResolver } from './ui/mergeResolver';
-import { showFileHistory } from './ui/history';
 import { isConflicted } from './util/status';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
@@ -68,42 +66,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   reg('jegit.branches', () => showBranches(repo));
   reg('jegit.manageRemotes', () => manageRemotes(repo));
   reg('jegit.worktrees', () => manageWorktrees(repo));
-  reg('jegit.openFileOnRemote', async () => {
-    const uri = vscode.window.activeTextEditor?.document.uri;
-    if (!uri || uri.scheme !== 'file') {
-      vscode.window.showInformationMessage('JeGit: open a file first.');
-      return;
-    }
-    const remotes = await git.remotesList();
-    const origin = remotes.find((r) => r.name === 'origin') ?? remotes[0];
-    const web = origin ? toWebUrl(origin.url) : '';
-    if (!web) {
-      vscode.window.showInformationMessage('JeGit: could not determine the remote web URL.');
-      return;
-    }
-    await vscode.env.openExternal(vscode.Uri.parse(fileWebUrl(web, repo.branch || 'main', repo.relPathOf(uri))));
-  });
-  reg('jegit.compareFileWithBranch', async () => {
-    const uri = vscode.window.activeTextEditor?.document.uri;
-    if (!uri || uri.scheme !== 'file') {
-      vscode.window.showInformationMessage('JeGit: open a file to compare.');
-      return;
-    }
-    const rel = repo.relPathOf(uri);
-    const { current, locals, remotes } = await git.branches();
-    const items = [...locals, ...remotes].filter((b) => b !== current).map((b) => ({ label: b }));
-    if (!items.length) {
-      vscode.window.showInformationMessage('JeGit: no other branches to compare with.');
-      return;
-    }
-    const pick = await vscode.window.showQuickPick(items, {
-      placeHolder: `Compare ${rel.split('/').pop()} with branch`,
-    });
-    if (!pick) return;
-    const left = vscode.Uri.from({ scheme: REV_SCHEME, path: '/' + rel, query: pick.label });
-    const name = rel.split('/').pop() ?? rel;
-    await vscode.commands.executeCommand('vscode.diff', left, uri, `${name} (${pick.label} <-> Working Tree)`);
-  });
   reg('jegit.newTag', async () => {
     const name = await vscode.window.showInputBox({ prompt: 'New tag name', placeHolder: 'v1.0.0' });
     if (!name) return;
@@ -119,18 +81,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerRemoteCommands(context, repo);
   registerPatchCommands(context, repo);
 
-  const blame = new BlameController(repo);
-  context.subscriptions.push(blame);
-  reg('jegit.toggleBlame', () => blame.toggle());
+  registerFileCommands(context, repo);
   reg('jegit.showCommitInLog', (hash: string) => view.revealCommitInLog(hash));
-  reg('jegit.fileHistory', () => {
-    const uri = vscode.window.activeTextEditor?.document.uri;
-    if (!uri || uri.scheme !== 'file') {
-      vscode.window.showInformationMessage('JeGit: open a file to see its history.');
-      return undefined;
-    }
-    return showFileHistory(repo, repo.relPathOf(uri));
-  });
 
   registerOperationCommands(context, repo);
   reg('jegit.browseAtRevision', async () => {
