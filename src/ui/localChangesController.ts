@@ -8,6 +8,7 @@ import { HEAD_SCHEME } from './quickDiff';
 import { showFileHistory } from './history';
 import { showMergeResolver } from './mergeResolver';
 import { splitHunks, buildHunkPatch } from '../util/diff';
+import { lintCommitMessage } from '../util/commitMessage';
 import type { CommitMsg, Incoming } from '../model/webviewMessages';
 import { isDefined, isEmpty, isNil, notEmpty } from '../util/guards';
 import type { PostMessage } from './shelfController';
@@ -114,6 +115,17 @@ export class LocalChangesController {
     }
   }
 
+  private async confirmMessageIssues(message: string): Promise<boolean> {
+    const issues = lintCommitMessage(message);
+    if (isEmpty(issues)) return true;
+    const ok = await vscode.window.showWarningMessage(
+      'The commit message has issues. Commit anyway?',
+      { modal: true, detail: issues.join('\n') },
+      'Commit Anyway',
+    );
+    return ok === 'Commit Anyway';
+  }
+
   private async recallMessage(): Promise<void> {
     const messages = await this.repo.git.recentCommitMessages();
     if (isEmpty(messages)) {
@@ -136,6 +148,7 @@ export class LocalChangesController {
       vscode.window.showWarningMessage('JeGit: enter a commit message first.');
       return;
     }
+    if (!(await this.confirmMessageIssues(m.message.trim()))) return;
     try {
       await this.repo.commit(m.paths, m.message.trim(), {
         amend: m.amend,
@@ -157,6 +170,7 @@ export class LocalChangesController {
       vscode.window.showWarningMessage('JeGit: enter a commit message.');
       return;
     }
+    if (!(await this.confirmMessageIssues(message.trim()))) return;
     try {
       await this.repo.git.commitIndex(message.trim());
       this.post({ type: 'committed' });
