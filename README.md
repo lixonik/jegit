@@ -65,6 +65,16 @@ Press **F5** to launch an Extension Development Host with JeGit loaded, then ope
 any git repository. The **JeGit** panel opens in the bottom tool-window area
 (also `Alt+9`, or the JEGIT tab next to Terminal).
 
+## Testing
+
+300+ vitest unit tests cover the git output parsers, the tab controllers
+(Local Changes / Log / Shelf), the UI flows (branches, stash, worktrees,
+remotes, push/update, file history), the injectable domain services
+(`Git.stash` / `Git.worktree` / `Git.remote` / `Git.tag`), CLI argument
+assembly, and the commit message inspections. The `vscode` module is replaced
+by a scriptable mock (`test/vscode-mock.ts`), so the suite runs in under a
+second without an extension host.
+
 ## Settings
 
 - `jegit.log.maxCount` – maximum commits loaded in the Log tab.
