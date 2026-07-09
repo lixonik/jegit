@@ -79,6 +79,31 @@ describe('vcs.js webview smoke', () => {
     expect(document.getElementById('console-log')!.textContent).toContain('$ git status');
   });
 
+  it('commits the checked files through the commit button', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [changeItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const msg = document.getElementById('message') as HTMLTextAreaElement;
+    msg.value = 'Fix things';
+    msg.dispatchEvent(new Event('input', { bubbles: true }));
+    const commit = document.getElementById('commit') as HTMLButtonElement;
+    if (commit.disabled) {
+      (document.querySelector('#tree input[type=checkbox]') as HTMLInputElement).click();
+    }
+    expect(commit.disabled).toBe(false);
+    commit.click();
+    const call = posted.filter((p) => p.type === 'commit').at(-1) as { paths: string[]; message: string };
+    expect(call.paths).toEqual(['src/a.ts']);
+    expect(call.message).toBe('Fix things');
+  });
+
   it('renders the log graph rows from logData', () => {
     sendToWebview({
       type: 'logData',
