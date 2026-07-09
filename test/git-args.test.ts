@@ -59,6 +59,43 @@ class PatchGit extends Git {
   }
 }
 
+describe('Git query composition', () => {
+  it('assembles the branch overview and drops remote HEAD entries', async () => {
+    const git = new ScriptedGit({
+      'rev-parse --abbrev-ref HEAD': 'main\n',
+      'for-each-ref --format=%(refname:short) refs/heads': 'main\ndev\n',
+      'for-each-ref --format=%(refname:short) refs/remotes': 'origin/HEAD\norigin/main\n',
+    });
+    expect(await git.branches()).toEqual({ current: 'main', locals: ['main', 'dev'], remotes: ['origin/main'] });
+  });
+
+  it('survives ref queries failing in an empty repository', async () => {
+    const git = new ScriptedGit({
+      'rev-parse --abbrev-ref HEAD': new Error('unborn branch'),
+      'for-each-ref --format=%(refname:short) refs/heads': new Error('no refs'),
+      'for-each-ref --format=%(refname:short) refs/remotes': new Error('no refs'),
+    });
+    expect(await git.branches()).toEqual({ current: '', locals: [], remotes: [] });
+  });
+
+  it('appends the path filter to the log arguments only when set', async () => {
+    const git = new RecordingGit();
+    await git.log(50, 'main', 'src/a.ts');
+    await git.log(50, 'main');
+    expect(git.calls[0].slice(-2)).toEqual(['--', 'src/a.ts']);
+    expect(git.calls[1]).not.toContain('--');
+    expect(git.calls[0]).toContain('--max-count=50');
+    expect(git.calls[0][1]).toBe('main');
+  });
+
+  it('answers ancestry as a boolean from the merge-base exit code', async () => {
+    const yes = new ScriptedGit({ 'merge-base --is-ancestor a b': '' });
+    expect(await yes.isAncestor('a', 'b')).toBe(true);
+    const no = new ScriptedGit({ 'merge-base --is-ancestor a b': new Error('exit 1') });
+    expect(await no.isAncestor('a', 'b')).toBe(false);
+  });
+});
+
 describe('Git.applyPatch3way', () => {
   it('reports clean when the straight apply succeeds', async () => {
     const git = new PatchGit(async () => '');
