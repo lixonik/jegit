@@ -142,6 +142,29 @@ describe('LogController', () => {
     expect(writeText).toHaveBeenCalledWith('abcdef1234567890');
   });
 
+  it('remembers the path filter for subsequent log queries', async () => {
+    const { ctrl, git } = makeController();
+    win.showInputBox = async () => 'src/app';
+    await ctrl.handle({ type: 'logPathFilter' } as Incoming);
+    await ctrl.handle({ type: 'requestLog' } as Incoming);
+    expect(git.log).toHaveBeenLastCalledWith(400, '--all', 'src/app');
+  });
+
+  it('switches the log scope to a picked containing branch', async () => {
+    const { ctrl, git } = makeController();
+    win.showQuickPick = async () => 'main';
+    await ctrl.handle({ type: 'branchesContaining', hash: 'abc' } as Incoming);
+    await ctrl.handle({ type: 'requestLog' } as Incoming);
+    expect(git.log).toHaveBeenLastCalledWith(400, 'main', '');
+  });
+
+  it('keeps the scope when the branch filter is cancelled', async () => {
+    const { ctrl, git } = makeController();
+    await ctrl.handle({ type: 'logBranchFilter' } as Incoming);
+    await ctrl.handle({ type: 'requestLog' } as Incoming);
+    expect(git.log).toHaveBeenLastCalledWith(400, '--all', '');
+  });
+
   it('refuses to push up to a commit outside the current branch', async () => {
     const { ctrl, git } = makeController(makeGit({ isAncestor: vi.fn(async () => false) }));
     await ctrl.handle({ type: 'pushUpTo', hash: 'abc' } as Incoming);
