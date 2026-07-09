@@ -92,6 +92,12 @@ describe('GitTags', () => {
     expect(calls[0]).toEqual(['tag', '--contains', 'abc', '--sort=-creatordate']);
   });
 
+  it('deletes a tag', async () => {
+    const { raw, calls } = recorder();
+    await new GitTags(raw).delete('v1');
+    expect(calls[0]).toEqual(['tag', '-d', 'v1']);
+  });
+
   it('survives a git failure when listing', async () => {
     expect(await new GitTags(failing).list()).toEqual([]);
     expect(await new GitTags(failing).containing('abc')).toEqual([]);

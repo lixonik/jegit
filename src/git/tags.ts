@@ -24,6 +24,10 @@ export class GitTags {
     }
   }
 
+  async delete(name: string): Promise<void> {
+    await this.raw(['tag', '-d', name]);
+  }
+
   async create(name: string, ref: string, message?: string): Promise<void> {
     const args = ['tag'];
     if (message) args.push('-a', name, '-m', message);

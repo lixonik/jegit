@@ -50,7 +50,7 @@ export async function showBranches(repo: Repository): Promise<void> {
     await vscode.commands.executeCommand('jegit.cleanupBranches');
     return;
   }
-  if (pick.tag) return checkoutRef(repo, pick.tag);
+  if (pick.tag) return tagActions(repo, pick.tag);
   if (!pick.ref) return;
   await branchActions(repo, pick.ref, current, remotes.includes(pick.ref));
 }
@@ -192,6 +192,29 @@ export async function performBranchAction(
       }
     }
     vscode.window.showInformationMessage(`JeGit: ${action} (${ref}) done.`);
+  } catch (err) {
+    vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    await repo.refresh();
+  }
+}
+
+async function tagActions(repo: Repository, tag: string): Promise<void> {
+  type Act = vscode.QuickPickItem & { a: 'checkout' | 'delete' };
+  const pick = await vscode.window.showQuickPick<Act>(
+    [
+      { label: '$(check) Checkout Tag (detached HEAD)', a: 'checkout' },
+      { label: '$(trash) Delete Tag', a: 'delete' },
+    ],
+    { placeHolder: tag },
+  );
+  if (!pick) return;
+  if (pick.a === 'checkout') return checkoutRef(repo, tag);
+  const ok = await vscode.window.showWarningMessage(`Delete tag ${tag}?`, { modal: true }, 'Delete');
+  if (ok !== 'Delete') return;
+  try {
+    await repo.git.tag.delete(tag);
+    vscode.window.showInformationMessage(`JeGit: deleted tag ${tag}.`);
   } catch (err) {
     vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
   } finally {
