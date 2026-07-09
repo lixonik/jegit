@@ -429,6 +429,37 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'unshelve', id: 's1', keep: true });
   });
 
+  it('renders the branch panel and drives scope and checkout from it', () => {
+    sendToWebview({
+      type: 'branchData',
+      current: 'main',
+      locals: ['main', 'feature/x'],
+      remotes: ['origin/main'],
+      outgoing: [],
+      scope: '--all',
+      logPath: '',
+    });
+    const panel = document.getElementById('log-branches')!;
+    expect(panel.textContent).toContain('feature');
+    expect(panel.textContent).toContain('x');
+
+    const branchRow = [...panel.querySelectorAll('*')].find((el) => el.textContent === 'x')
+      ?? [...panel.querySelectorAll('*')].find((el) => el.textContent === 'feature/x');
+    expect(branchRow).toBeDefined();
+    (branchRow as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted.filter((p) => p.type === 'setLogScope').length).toBeGreaterThan(0);
+
+    (branchRow as HTMLElement).dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const checkout = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Checkout',
+    ) as HTMLElement;
+    expect(checkout).toBeDefined();
+    checkout.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const cmd = posted.filter((p) => p.type === 'branchCmd').at(-1) as { action: string; ref: string };
+    expect(cmd.action).toBe('checkout');
+    expect(cmd.ref).toBe('feature/x');
+  });
+
   it('renders the details panel from commitDetailsData', () => {
     sendToWebview({
       type: 'commitDetailsData',
