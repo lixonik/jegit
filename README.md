@@ -59,6 +59,7 @@ npm run compile        # bundle to dist/
 npm run watch          # incremental rebuilds
 npm run typecheck      # tsc --noEmit
 npm test               # vitest unit tests
+npm run check          # typecheck + tests in one command (fails fast)
 ```
 
 Press **F5** to launch an Extension Development Host with JeGit loaded, then open

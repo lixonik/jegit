@@ -303,6 +303,7 @@
     "watch": "node esbuild.js --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "check": "tsc --noEmit && vitest run",
     "preview": "python -m http.server 8099"
   },
   "devDependencies": {
