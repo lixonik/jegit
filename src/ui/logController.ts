@@ -66,7 +66,7 @@ export class LogController {
           this.repo.git.commitBody(m.hash),
           this.repo.git.commitCommitter(m.hash),
           this.repo.git.branchesContaining(m.hash),
-          this.repo.git.tagsContaining(m.hash),
+          this.repo.git.tag.containing(m.hash),
         ]);
         this.post({ type: 'commitDetailsData', hash: m.hash, files, body, committer, branches, tags });
         return true;
@@ -86,7 +86,7 @@ export class LogController {
         await this.showContaining(m.hash, await this.repo.git.branchesContaining(m.hash), 'local branch', 'branch');
         return true;
       case 'tagsContaining':
-        await this.showContaining(m.hash, await this.repo.git.tagsContaining(m.hash), 'tag', 'tag');
+        await this.showContaining(m.hash, await this.repo.git.tag.containing(m.hash), 'tag', 'tag');
         return true;
       case 'openCommitRemote':
         await this.openCommitOnRemote(m.hash);
@@ -370,7 +370,7 @@ export class LogController {
     if (isNil(name) || isEmpty(name)) return;
     const message = await vscode.window.showInputBox({ prompt: 'Tag message (optional, empty = lightweight tag)' });
     await this.runLogOp(
-      () => this.repo.git.createTag(name.trim(), hash, message?.trim() || undefined),
+      () => this.repo.git.tag.create(name.trim(), hash, message?.trim() || undefined),
       `created tag ${name.trim()}`,
     );
   }

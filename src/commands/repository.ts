@@ -44,7 +44,7 @@ async function createTag(repo: Repository): Promise<void> {
   if (isNil(name) || isEmpty(name)) return;
   const message = await vscode.window.showInputBox({ prompt: 'Tag message (optional, empty = lightweight tag)' });
   try {
-    await repo.git.createTag(name.trim(), '', message?.trim() || undefined);
+    await repo.git.tag.create(name.trim(), '', message?.trim() || undefined);
     vscode.window.showInformationMessage(`JeGit: created tag ${name.trim()}.`);
     await repo.refresh();
   } catch (err) {

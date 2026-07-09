@@ -33,7 +33,7 @@ export async function showBranches(repo: Repository): Promise<void> {
     items.push({ label: 'Remote', kind: vscode.QuickPickItemKind.Separator });
     for (const b of remotes) items.push({ label: '$(cloud) ' + b, ref: b });
   }
-  const tags = await repo.git.tags(50);
+  const tags = await repo.git.tag.list(50);
   if (tags.length) {
     items.push({ label: 'Tags', kind: vscode.QuickPickItemKind.Separator });
     for (const t of tags) items.push({ label: '$(tag) ' + t, tag: t });

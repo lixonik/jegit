@@ -4,6 +4,7 @@ import { execGit } from './runner';
 import { GitStash } from './stash';
 import { GitWorktrees } from './worktrees';
 import { GitRemotes } from './remotes';
+import { GitTags } from './tags';
 import { parseNameStatusZ } from '../util/parse';
 import { parseRecentBranches } from '../util/recentBranches';
 import {
@@ -39,6 +40,7 @@ export class Git {
   readonly stash = new GitStash((args) => this.raw(args));
   readonly worktree = new GitWorktrees((args) => this.raw(args));
   readonly remote = new GitRemotes((args) => this.raw(args));
+  readonly tag = new GitTags((args) => this.raw(args));
 
   async raw(args: string[]): Promise<string> {
     try {
@@ -345,15 +347,6 @@ export class Git {
     }
   }
 
-  /** Tag names, newest first. */
-  async tags(limit = 100): Promise<string[]> {
-    try {
-      return parseTagList(await this.raw(['tag', '--sort=-creatordate'])).slice(0, limit);
-    } catch {
-      return [];
-    }
-  }
-
   /** Recent commit messages (full body), newest first, de-duplicated. */
   async recentCommitMessages(limit = 20): Promise<string[]> {
     try {
@@ -363,14 +356,6 @@ export class Git {
     }
   }
 
-  /** Tags that contain the given commit (`git tag --contains`), newest first. */
-  async tagsContaining(hash: string): Promise<string[]> {
-    try {
-      return parseTagList(await this.raw(['tag', '--contains', hash, '--sort=-creatordate']));
-    } catch {
-      return [];
-    }
-  }
   async deleteBranch(name: string, force = false): Promise<void> {
     await this.raw(['branch', force ? '-D' : '-d', name]);
   }
@@ -516,13 +501,6 @@ export class Git {
     }
   }
 
-  async createTag(name: string, ref: string, message?: string): Promise<void> {
-    const args = ['tag'];
-    if (message) args.push('-a', name, '-m', message);
-    else args.push(name);
-    if (ref) args.push(ref);
-    await this.raw(args);
-  }
 
   async diffRefs(a: string, b: string): Promise<{ status: string; path: string }[]> {
     let out = '';
