@@ -194,6 +194,40 @@ describe('vcs.js webview smoke', () => {
     expect(msg.value).toBe('');
   });
 
+  it('keeps directory checkboxes tri-state over their descendants', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 2,
+        changelists: [
+          {
+            id: 'default',
+            name: 'Changes',
+            active: true,
+            files: [changeItem, { ...changeItem, path: 'src/b.ts', fsPath: 'D:/repo/src/b.ts' }],
+          },
+        ],
+      },
+      operation: null,
+      staging: null,
+    });
+    const boxes = () => [...document.querySelectorAll('#tree input[type=checkbox]')] as HTMLInputElement[];
+    expect(boxes().length).toBeGreaterThanOrEqual(3);
+
+    const fileBoxes = boxes().slice(-2);
+    if (!fileBoxes[0].checked) fileBoxes[0].click();
+    if (boxes().slice(-2)[1].checked) boxes().slice(-2)[1].click();
+    const dirBox = boxes()[boxes().length - 3];
+    expect(dirBox.indeterminate).toBe(true);
+
+    dirBox.checked = true;
+    dirBox.dispatchEvent(new Event('change', { bubbles: true }));
+    const after = boxes().slice(-2);
+    expect(after[0].checked).toBe(true);
+    expect(after[1].checked).toBe(true);
+  });
+
   it('routes a conflicted file to the merge resolver on double-click', () => {
     const conflicted = {
       ...changeItem,
