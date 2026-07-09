@@ -6,6 +6,7 @@ import { Repository } from '../model/repository';
 import { DEFAULT_CHANGELIST_ID } from '../model/changelistStore';
 import { HEAD_SCHEME, REV_SCHEME } from './quickDiff';
 import { renderVersionControlHtml } from './versionControlHtml';
+import { ShelfController } from './shelfController';
 import { showFileHistory } from './history';
 import { showRebaseDialog } from './rebaseDialog';
 import { performBranchAction } from './branches';
@@ -20,6 +21,7 @@ export class VersionControlView implements vscode.WebviewViewProvider {
   static readonly viewId = 'jegit.versionControl';
   private view?: vscode.WebviewView;
   private readonly consoleLog: string[] = [];
+  private readonly shelfCtrl: ShelfController;
   private logScope = '--all';
   private logPath = '';
 
@@ -29,6 +31,7 @@ export class VersionControlView implements vscode.WebviewViewProvider {
   ) {
     this.repo.onDidChange(() => this.postState());
     this.repo.git.commandLogger = (line) => this.pushConsole(line);
+    this.shelfCtrl = new ShelfController(this.repo, (m) => this.view?.webview.postMessage(m));
   }
 
   resolveWebviewView(view: vscode.WebviewView): void {
@@ -51,10 +54,6 @@ export class VersionControlView implements vscode.WebviewViewProvider {
     const stagingOn = vscode.workspace.getConfiguration('jegit').get('stagingArea', false);
     const staging = stagingOn ? splitStaged(await this.repo.git.status().catch(() => [])) : null;
     this.view?.webview.postMessage({ type: 'state', payload, operation, staging });
-  }
-
-  private postShelf(): void {
-    this.view?.webview.postMessage({ type: 'shelfData', entries: this.repo.shelves() });
   }
 
   /** Send the branch tree (and the active log scope) to the Log tab's left panel. */
@@ -94,6 +93,7 @@ export class VersionControlView implements vscode.WebviewViewProvider {
   }
 
   private async onMessage(m: Incoming): Promise<void> {
+    if (await this.shelfCtrl.handle(m)) return;
     switch (m.type) {
       case 'ready':
         this.postState();
@@ -104,64 +104,12 @@ export class VersionControlView implements vscode.WebviewViewProvider {
       case 'branches':
         await vscode.commands.executeCommand('jegit.branches');
         break;
-      case 'requestShelf':
-        this.postShelf();
-        break;
       case 'requestConsole':
         this.view?.webview.postMessage({ type: 'consoleData', lines: this.consoleLog });
         break;
       case 'getLastCommitMessage': {
         const message = await this.repo.git.commitBody('HEAD');
         this.view?.webview.postMessage({ type: 'lastCommitMessage', message });
-        break;
-      }
-      case 'shelve': {
-        if (!m.items?.length) {
-          vscode.window.showWarningMessage('JeGit: select files to shelve.');
-          break;
-        }
-        const def = this.repo.store.getChangelist(this.repo.store.activeId)?.name ?? 'Shelved changes';
-        const name = await vscode.window.showInputBox({ prompt: 'Shelf name', value: def });
-        if (name === undefined) break;
-        try {
-          await this.repo.shelve(name.trim() || def, m.items);
-          this.postShelf();
-          vscode.window.showInformationMessage(`JeGit: shelved ${m.items.length} file(s).`);
-        } catch (err) {
-          vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
-        }
-        break;
-      }
-      case 'unshelve':
-        try {
-          const res = await this.repo.unshelve(m.id, !!m.keep);
-          this.postShelf();
-          if (res === 'conflicts') {
-            vscode.window.showWarningMessage(
-              'JeGit: unshelved with conflicts -- resolve them, then commit. The shelf was kept.',
-            );
-          } else {
-            vscode.window.showInformationMessage(m.keep ? 'JeGit: unshelved (shelf kept).' : 'JeGit: unshelved.');
-          }
-        } catch (err) {
-          vscode.window.showErrorMessage(
-            `JeGit: ${err instanceof Error ? err.message : String(err)} (patch may not apply cleanly)`,
-          );
-        }
-        break;
-      case 'renameShelf': {
-        const entry = this.repo.shelves().find((e) => e.id === m.id);
-        const name = await vscode.window.showInputBox({ prompt: 'Rename shelf', value: entry?.name });
-        if (name === undefined || !name.trim()) break;
-        await this.repo.renameShelf(m.id, name.trim());
-        this.postShelf();
-        break;
-      }
-      case 'deleteShelf': {
-        const ok = await vscode.window.showWarningMessage('Delete this shelf?', { modal: true }, 'Delete');
-        if (ok !== 'Delete') break;
-        await this.repo.deleteShelf(m.id);
-        this.postShelf();
         break;
       }
       case 'requestLog': {
