@@ -104,6 +104,37 @@ describe('Git argument assembly', () => {
     ]);
   });
 
+  it('reads blobs with the right revision spec', async () => {
+    const git = new RecordingGit();
+    await git.showHead('src/a.ts');
+    await git.showRev('abc123', 'src/a.ts');
+    await git.showStage(2, 'src/a.ts');
+    expect(git.calls).toEqual([
+      ['show', 'HEAD:src/a.ts'],
+      ['show', 'abc123:src/a.ts'],
+      ['show', ':2:src/a.ts'],
+    ]);
+  });
+
+  it('returns an empty blob for an empty revision and on git failure', async () => {
+    const git = new RecordingGit();
+    expect(await git.showRev('', 'src/a.ts')).toBe('');
+    expect(git.calls).toEqual([]);
+
+    const failing = new ScriptedGit({});
+    failing.raw = async () => {
+      throw new Error('bad object');
+    };
+    expect(await failing.showHead('src/a.ts')).toBe('');
+    expect(await failing.showStage(3, 'src/a.ts')).toBe('');
+  });
+
+  it('restores a file from a revision', async () => {
+    const git = new RecordingGit();
+    await git.restoreFile('abc123', 'src/a.ts');
+    expect(git.calls).toEqual([['checkout', 'abc123', '--', 'src/a.ts']]);
+  });
+
   it('skips intent-to-add for an empty selection', async () => {
     const git = new RecordingGit();
     await git.addIntentToAdd([]);
