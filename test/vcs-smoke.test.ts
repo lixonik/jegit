@@ -273,6 +273,27 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'rollback', items: [{ path: 'src/a.ts', untracked: false }] });
   });
 
+  it('offers Skip only during a rebase and posts banner actions', () => {
+    const send = (operation: string) =>
+      sendToWebview({
+        type: 'state',
+        payload: { branch: 'main', total: 0, changelists: [] },
+        operation,
+        staging: null,
+      });
+    const banner = () => document.getElementById('op-banner')!;
+    const buttons = () => [...banner().querySelectorAll('button')].map((b) => b.textContent);
+
+    send('merge');
+    expect(buttons()).toEqual(['Continue', 'Abort']);
+
+    send('rebase');
+    expect(buttons()).toEqual(['Continue', 'Skip', 'Abort']);
+    const skip = [...banner().querySelectorAll('button')].find((b) => b.textContent === 'Skip')!;
+    skip.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'opAction', action: 'skip' });
+  });
+
   it('routes a conflicted file to the merge resolver on double-click', () => {
     const conflicted = {
       ...changeItem,
