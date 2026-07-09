@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { execGit } from './runner';
+import { GitStash } from './stash';
 import { parseNameStatusZ } from '../util/parse';
 import { parseRecentBranches } from '../util/recentBranches';
 import {
@@ -32,6 +33,8 @@ export class Git {
 
   /** Optional sink that receives each executed git command (for the Console tab). */
   commandLogger?: (line: string) => void;
+
+  readonly stash = new GitStash((args) => this.raw(args));
 
   async raw(args: string[]): Promise<string> {
     try {
@@ -599,35 +602,6 @@ export class Git {
     } catch {
       return '';
     }
-  }
-
-  async stashPush(message: string): Promise<void> {
-    const args = ['stash', 'push'];
-    if (message) args.push('-m', message);
-    await this.raw(args);
-  }
-  async stashList(): Promise<{ ref: string; subject: string }[]> {
-    try {
-      return parseStashList(await this.raw(['stash', 'list', '--format=%gd%x1f%gs']));
-    } catch {
-      return [];
-    }
-  }
-  async stashApply(ref: string): Promise<void> {
-    await this.raw(['stash', 'apply', ref]);
-  }
-  async stashPop(ref: string): Promise<void> {
-    await this.raw(['stash', 'pop', ref]);
-  }
-  async stashDrop(ref: string): Promise<void> {
-    await this.raw(['stash', 'drop', ref]);
-  }
-  async stashClear(): Promise<void> {
-    await this.raw(['stash', 'clear']);
-  }
-  /** Create a new branch from the stash base and apply the stash onto it (git stash branch). */
-  async stashBranch(name: string, ref: string): Promise<void> {
-    await this.raw(['stash', 'branch', name, ref]);
   }
 
   async resetHard(ref: string): Promise<void> {

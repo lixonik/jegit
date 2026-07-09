@@ -7,7 +7,7 @@ export async function stashChanges(repo: Repository): Promise<void> {
   const message = await vscode.window.showInputBox({ prompt: 'Stash message (optional)', placeHolder: 'WIP' });
   if (message === undefined) return;
   try {
-    await repo.git.stashPush(message.trim());
+    await repo.git.stash.push(message.trim());
     vscode.window.showInformationMessage('JeGit: changes stashed.');
   } catch (err) {
     vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
@@ -18,7 +18,7 @@ export async function stashChanges(repo: Repository): Promise<void> {
 
 /** Pick a stash and apply / pop / drop it. */
 export async function unstash(repo: Repository): Promise<void> {
-  const stashes = await repo.git.stashList();
+  const stashes = await repo.git.stash.list();
   if (!stashes.length) {
     vscode.window.showInformationMessage('JeGit: no stashes.');
     return;
@@ -32,7 +32,7 @@ export async function unstash(repo: Repository): Promise<void> {
     const ok = await vscode.window.showWarningMessage('Drop all stashes?', { modal: true }, 'Clear All');
     if (ok !== 'Clear All') return;
     try {
-      await repo.git.stashClear();
+      await repo.git.stash.clear();
       vscode.window.showInformationMessage('JeGit: cleared all stashes.');
     } catch (err) {
       vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
@@ -74,17 +74,17 @@ export async function unstash(repo: Repository): Promise<void> {
 
   try {
     if (action.a === 'apply') {
-      await repo.git.stashApply(pick.ref);
+      await repo.git.stash.apply(pick.ref);
     } else if (action.a === 'pop') {
-      await repo.git.stashPop(pick.ref);
+      await repo.git.stash.pop(pick.ref);
     } else if (action.a === 'branch') {
       const name = await vscode.window.showInputBox({ prompt: 'New branch name for the stashed changes', placeHolder: 'feature/wip' });
       if (!name || !name.trim()) return;
-      await repo.git.stashBranch(name.trim(), pick.ref);
+      await repo.git.stash.branch(name.trim(), pick.ref);
     } else {
       const ok = await vscode.window.showWarningMessage(`Drop ${pick.ref}?`, { modal: true }, 'Drop');
       if (ok !== 'Drop') return;
-      await repo.git.stashDrop(pick.ref);
+      await repo.git.stash.drop(pick.ref);
     }
     vscode.window.showInformationMessage(`JeGit: stash ${action.a} done.`);
   } catch (err) {
