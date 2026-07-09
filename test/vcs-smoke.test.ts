@@ -412,6 +412,23 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'cherryPick', hash: 'b'.repeat(40) });
   });
 
+  it('unshelves a shelf from its context menu', () => {
+    sendToWebview({
+      type: 'shelfData',
+      entries: [{ id: 's1', name: 'WIP dialogs', createdAt: '2026-07-09T12:00:00+03:00', files: ['src/a.ts'] }],
+    });
+    const shelfRow = [...document.querySelectorAll('#shelf-list *')].find((el) =>
+      el.textContent?.includes('WIP dialogs'),
+    ) as HTMLElement;
+    shelfRow.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const keep = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Unshelve and Keep',
+    ) as HTMLElement;
+    expect(keep).toBeDefined();
+    keep.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'unshelve', id: 's1', keep: true });
+  });
+
   it('renders the details panel from commitDetailsData', () => {
     sendToWebview({
       type: 'commitDetailsData',
