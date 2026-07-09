@@ -1,4 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { Repository } from '../src/model/repository';
 import type { Git } from '../src/git/git';
 import type { ChangelistStore } from '../src/model/changelistStore';
@@ -102,6 +105,44 @@ describe('Repository', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('shelve refuses when the selection produces an empty patch', async () => {
+    const git = makeGit({ addIntentToAdd: vi.fn(async () => undefined), diffHead: vi.fn(async () => '  \n'), raw: vi.fn(async () => '') });
+    const shelf = makeShelf();
+    (shelf as unknown as { add: unknown }).add = vi.fn(async () => undefined);
+    const repo = new Repository(git, makeStore(), shelf);
+    await expect(repo.shelve('WIP', [{ path: 'a.ts', untracked: false }])).rejects.toThrow('nothing to shelve');
+    expect((shelf as unknown as { add: ReturnType<typeof vi.fn> }).add).not.toHaveBeenCalled();
+  });
+
+  it('shelve saves the patch and reverts the tracked files', async () => {
+    const git = makeGit({ diffHead: vi.fn(async () => 'patch body'), raw: vi.fn(async () => '') });
+    const shelf = makeShelf();
+    const add = vi.fn(async () => undefined);
+    (shelf as unknown as { add: unknown }).add = add;
+    const repo = new Repository(git, makeStore(), shelf);
+    await repo.shelve('WIP', [{ path: 'a.ts', untracked: false }]);
+    expect(add).toHaveBeenCalledWith('WIP', ['a.ts'], 'patch body');
+    expect(git.raw).toHaveBeenCalledWith(['checkout', 'HEAD', '--', 'a.ts']);
+  });
+
+  it('shelve records untracked files and removes them from disk', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'jegit-shelve-'));
+    fs.writeFileSync(path.join(root, 'new.ts'), 'fresh');
+    const git = makeGit({
+      repoRoot: root,
+      addIntentToAdd: vi.fn(async () => undefined),
+      diffHead: vi.fn(async () => 'patch body'),
+      raw: vi.fn(async () => ''),
+    });
+    const shelf = makeShelf();
+    (shelf as unknown as { add: unknown }).add = vi.fn(async () => undefined);
+    const repo = new Repository(git, makeStore(), shelf);
+    await repo.shelve('WIP', [{ path: 'new.ts', untracked: true }]);
+    expect(git.addIntentToAdd).toHaveBeenCalledWith(['new.ts']);
+    expect(fs.existsSync(path.join(root, 'new.ts'))).toBe(false);
+    expect(git.raw).toHaveBeenCalledWith(['reset', '-q', '--', 'new.ts']);
   });
 
   it('cancels a pending refresh on dispose', async () => {
