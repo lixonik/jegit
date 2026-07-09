@@ -1,12 +1,15 @@
 // Minimal stand-in for the `vscode` module used by unit tests.
 // Tests overwrite the window methods to script user answers.
-export const window: Record<string, (...args: unknown[]) => Promise<unknown>> = {
+export const window: Record<string, (...args: unknown[]) => unknown> = {
   showInputBox: async () => undefined,
   showQuickPick: async () => undefined,
   showWarningMessage: async () => undefined,
   showInformationMessage: async () => undefined,
   showErrorMessage: async () => undefined,
+  createStatusBarItem: () => ({ text: '', show: () => undefined, dispose: () => undefined }),
 };
+
+export const StatusBarAlignment = { Left: 1, Right: 2 };
 
 export const commands: Record<string, (...args: unknown[]) => Promise<unknown>> = {
   executeCommand: async () => undefined,

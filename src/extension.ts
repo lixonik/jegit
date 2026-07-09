@@ -12,6 +12,7 @@ import { ShelfStore } from './model/shelfStore';
 import { Repository } from './model/repository';
 import { registerContentProviders } from './ui/quickDiff';
 import { VersionControlView } from './ui/versionControlView';
+import { createBranchStatusBar } from './ui/statusBar';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const folder = vscode.workspace.workspaceFolders?.[0];
@@ -44,20 +45,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerFileCommands(context, repo);
   registerOperationCommands(context, repo);
 
-  const branchItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-  branchItem.command = 'jegit.branches';
-  branchItem.tooltip = 'JeGit: Git branches';
-  context.subscriptions.push(branchItem);
-  const updateBranch = () => {
-    const s = repo.sync;
-    const ab = s && (s.ahead || s.behind) ? `  $(arrow-down)${s.behind} $(arrow-up)${s.ahead}` : '';
-    branchItem.text = repo.branch ? `$(git-branch) ${repo.branch}${ab}` : '$(git-branch) JeGit';
-    branchItem.show();
-  };
-  context.subscriptions.push(repo.onDidChange(updateBranch));
+  context.subscriptions.push(createBranchStatusBar(repo));
 
   await repo.refresh();
-  updateBranch();
 
   // Reveal the jegit panel so it is discoverable instead of hidden behind the
   // Terminal tab in the bottom panel.
