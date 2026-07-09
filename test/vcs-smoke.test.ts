@@ -78,4 +78,38 @@ describe('vcs.js webview smoke', () => {
     sendToWebview({ type: 'consoleLine', line: '$ git status' });
     expect(document.getElementById('console-log')!.textContent).toContain('$ git status');
   });
+
+  it('renders the log graph rows from logData', () => {
+    sendToWebview({
+      type: 'logData',
+      commits: [
+        { hash: 'b'.repeat(40), parents: ['a'.repeat(40)], author: 'Dev', email: 'd@e', date: '2026-07-09T12:00:00+03:00', subject: 'Fix the filter', refs: ['main'] },
+        { hash: 'a'.repeat(40), parents: [], author: 'Dev', email: 'd@e', date: '2026-07-08T12:00:00+03:00', subject: 'Initial commit', refs: [] },
+      ],
+    });
+    const rows = document.querySelectorAll('.log-row');
+    expect(rows.length).toBe(2);
+    expect(document.getElementById('log-list')!.textContent).toContain('Fix the filter');
+  });
+
+  it('requests the commit details when a log row is clicked', () => {
+    const row = document.querySelector('.log-row') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'commitDetails', hash: 'b'.repeat(40) });
+  });
+
+  it('renders the details panel from commitDetailsData', () => {
+    sendToWebview({
+      type: 'commitDetailsData',
+      hash: 'b'.repeat(40),
+      files: [{ status: 'M', path: 'src/a.ts' }],
+      body: 'Fix the filter\n\nDetails body.',
+      committer: { name: 'Dev', date: '2026-07-09T12:00:00+03:00' },
+      branches: ['main'],
+      tags: [],
+    });
+    const details = document.getElementById('log-details')!.textContent;
+    expect(details).toContain('a.ts');
+    expect(details).toContain('Fix the filter');
+  });
 });
