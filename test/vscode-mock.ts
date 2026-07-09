@@ -1,4 +1,13 @@
 // Minimal stand-in for the `vscode` module used by unit tests.
+// Tests overwrite the window methods to script user answers.
+export const window: Record<string, (...args: unknown[]) => Promise<unknown>> = {
+  showInputBox: async () => undefined,
+  showQuickPick: async () => undefined,
+  showWarningMessage: async () => undefined,
+  showInformationMessage: async () => undefined,
+  showErrorMessage: async () => undefined,
+};
+
 export class EventEmitter<T> {
   private listeners: ((e: T) => void)[] = [];
   readonly event = (listener: (e: T) => void) => {
