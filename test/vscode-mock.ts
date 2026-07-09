@@ -17,8 +17,13 @@ export const env = {
   openExternal: async (_uri: unknown): Promise<boolean> => true,
 };
 
+export const Disposable = {
+  from: (..._items: unknown[]) => ({ dispose: () => undefined }),
+};
+
 export const workspace = {
   getConfiguration: (_section?: string) => ({ get: <T>(_key: string, fallback: T): T => fallback }),
+  registerTextDocumentContentProvider: (_scheme: string, _provider: unknown) => ({ dispose: () => undefined }),
   createFileSystemWatcher: () => ({
     onDidChange: () => ({ dispose: () => undefined }),
     onDidCreate: () => ({ dispose: () => undefined }),
