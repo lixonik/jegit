@@ -294,6 +294,32 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'opAction', action: 'skip' });
   });
 
+  it('renders staging groups and stages a file from its menu', () => {
+    sendToWebview({
+      type: 'state',
+      payload: { branch: 'main', total: 2, changelists: [] },
+      operation: null,
+      staging: {
+        staged: [{ path: 'src/s.ts', letter: 'M' }],
+        unstaged: [{ path: 'src/u.ts', letter: 'M' }],
+        untracked: [],
+      },
+    });
+    const tree = document.getElementById('tree')!;
+    const groups = [...tree.querySelectorAll('.cl-name')].map((el) => el.textContent);
+    expect(groups).toEqual(['Staged', 'Changes', 'Unversioned Files']);
+
+    const unstagedRow = [...tree.querySelectorAll('.tree-row')].find((r) =>
+      r.textContent?.includes('u.ts'),
+    ) as HTMLElement;
+    unstagedRow.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const stageItem = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Stage',
+    ) as HTMLElement;
+    stageItem.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'stage', paths: ['src/u.ts'] });
+  });
+
   it('routes a conflicted file to the merge resolver on double-click', () => {
     const conflicted = {
       ...changeItem,
