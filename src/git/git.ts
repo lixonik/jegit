@@ -1,7 +1,6 @@
-import { execFile } from 'child_process';
-import { promisify } from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
+import { execGit } from './runner';
 import { parseNameStatusZ } from '../util/parse';
 import { parseRecentBranches } from '../util/recentBranches';
 import {
@@ -27,8 +26,6 @@ export * from './parsers';
 import type { GitOperation, FileChange, LogCommit, CommitFile, BlameLine, Worktree } from '../model/git';
 export type { GitOperation, FileChange, LogCommit, CommitFile, BlameLine, Worktree } from '../model/git';
 
-const execFileAsync = promisify(execFile);
-
 /** Thin wrapper over the git CLI, scoped to a single repository root. */
 export class Git {
   constructor(public readonly repoRoot: string) {}
@@ -38,11 +35,7 @@ export class Git {
 
   async raw(args: string[]): Promise<string> {
     try {
-      const { stdout } = await execFileAsync('git', args, {
-        cwd: this.repoRoot,
-        maxBuffer: 64 * 1024 * 1024,
-        windowsHide: true,
-      });
+      const stdout = await execGit(args, { cwd: this.repoRoot });
       this.commandLogger?.(`git ${args.join(' ')}`);
       return stdout;
     } catch (e) {
@@ -53,25 +46,18 @@ export class Git {
 
   /** Initialize a new repository in the given directory. */
   static async init(dir: string): Promise<void> {
-    await execFileAsync('git', ['init'], { cwd: dir, windowsHide: true });
+    await execGit(['init'], { cwd: dir });
   }
 
   /** Clone a repository into parentDir; returns the path of the new clone. */
   static async clone(url: string, parentDir: string, name: string): Promise<string> {
-    await execFileAsync('git', ['clone', '--', url, name], {
-      cwd: parentDir,
-      windowsHide: true,
-      maxBuffer: 64 * 1024 * 1024,
-    });
+    await execGit(['clone', '--', url, name], { cwd: parentDir });
     return path.join(parentDir, name);
   }
 
   static async findRepoRoot(cwd: string): Promise<string | undefined> {
     try {
-      const { stdout } = await execFileAsync('git', ['rev-parse', '--show-toplevel'], {
-        cwd,
-        windowsHide: true,
-      });
+      const stdout = await execGit(['rev-parse', '--show-toplevel'], { cwd });
       const root = stdout.trim();
       return root || undefined;
     } catch {
@@ -305,10 +291,8 @@ export class Git {
       await this.raw(['commit', '--no-edit']);
       return;
     }
-    await execFileAsync('git', [kind, '--continue'], {
+    await execGit([kind, '--continue'], {
       cwd: this.repoRoot,
-      windowsHide: true,
-      maxBuffer: 64 * 1024 * 1024,
       env: { ...process.env, GIT_EDITOR: 'true' },
     });
     this.commandLogger?.(`git ${kind} --continue`);
@@ -689,12 +673,7 @@ export class Git {
     };
     if (message != null) env.JEGIT_REBASE_MSG = message;
     try {
-      await execFileAsync('git', ['rebase', '-i', base], {
-        cwd: this.repoRoot,
-        windowsHide: true,
-        maxBuffer: 64 * 1024 * 1024,
-        env,
-      });
+      await execGit(['rebase', '-i', base], { cwd: this.repoRoot, env });
       this.commandLogger?.(`git rebase -i ${base} (${action} ${target.slice(0, 7)})`);
     } catch (e) {
       this.commandLogger?.(`git rebase -i ${base} (${action}) [failed -> abort]`);
@@ -722,12 +701,7 @@ export class Git {
       JEGIT_REBASE_TODO_FILE: todoFile,
     };
     try {
-      await execFileAsync('git', ['rebase', '-i', base], {
-        cwd: this.repoRoot,
-        windowsHide: true,
-        maxBuffer: 64 * 1024 * 1024,
-        env,
-      });
+      await execGit(['rebase', '-i', base], { cwd: this.repoRoot, env });
       this.commandLogger?.(`git rebase -i ${base} (reorder)`);
     } catch (e) {
       this.commandLogger?.(`git rebase -i ${base} (reorder) [failed -> abort]`);
