@@ -478,6 +478,41 @@ describe('vcs.js webview smoke', () => {
     expect([call.a, call.b].sort()).toEqual(['a'.repeat(40), 'b'.repeat(40)]);
   });
 
+  it('groups untracked files and offers Add to .gitignore', () => {
+    const untrackedItem = {
+      ...changeItem,
+      path: 'scratch.log',
+      status: '??',
+      statusLabel: 'Unversioned',
+      letter: '?',
+      untracked: true,
+      fsPath: 'D:/repo/scratch.log',
+    };
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [untrackedItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const tree = document.getElementById('tree')!;
+    expect(tree.textContent).toContain('Unversioned Files');
+
+    const fileNode = [...tree.querySelectorAll('*')].find(
+      (el) => el.textContent?.trim() === 'scratch.log',
+    ) as HTMLElement;
+    fileNode.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const ignore = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Add to .gitignore',
+    ) as HTMLElement;
+    expect(ignore).toBeDefined();
+    ignore.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'addToGitignore', path: 'scratch.log' });
+  });
+
   it('renders the details panel from commitDetailsData', () => {
     sendToWebview({
       type: 'commitDetailsData',
