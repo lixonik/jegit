@@ -159,6 +159,16 @@ describe('vcs.js webview smoke', () => {
     expect(document.querySelectorAll('#log-list .lg-hl').length).toBe(0);
   });
 
+  it('opens the commit context menu and posts the picked action', () => {
+    const row = document.querySelector('.log-row') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const ctx = document.getElementById('ctxmenu')!;
+    const items = [...ctx.querySelectorAll('*')].filter((el) => el.textContent === 'Cherry-Pick');
+    expect(items.length).toBeGreaterThan(0);
+    (items[0] as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'cherryPick', hash: 'b'.repeat(40) });
+  });
+
   it('renders the details panel from commitDetailsData', () => {
     sendToWebview({
       type: 'commitDetailsData',
