@@ -1,9 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
-import * as os from 'os';
 import { Git } from './git/git';
 import { registerBootstrapCommands } from './commands/bootstrap';
+import { registerPatchCommands } from './commands/patch';
 import { ChangelistStore } from './model/changelistStore';
 import { ShelfStore } from './model/shelfStore';
 import { Repository } from './model/repository';
@@ -128,30 +127,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       await repo.refresh();
     }
   });
-  reg('jegit.applyPatchClipboard', async () => {
-    const text = await vscode.env.clipboard.readText();
-    if (!text.trim()) {
-      vscode.window.showInformationMessage('JeGit: clipboard has no patch.');
-      return;
-    }
-    const tmp = path.join(os.tmpdir(), `jegit-clip-${Date.now()}.patch`);
-    try {
-      fs.writeFileSync(tmp, text, 'utf8');
-      await git.applyPatch(tmp);
-      vscode.window.showInformationMessage('JeGit: patch applied from clipboard.');
-      await repo.refresh();
-    } catch (err) {
-      vscode.window.showErrorMessage(
-        `JeGit: ${err instanceof Error ? err.message : String(err)} (patch may not apply cleanly)`,
-      );
-    } finally {
-      try {
-        fs.unlinkSync(tmp);
-      } catch {
-        /* ignore */
-      }
-    }
-  });
   reg('jegit.pushForce', async () => {
     if (!(await git.hasUpstream())) {
       vscode.window.showWarningMessage('JeGit: no upstream to push to.');
@@ -182,23 +157,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       await repo.refresh();
     }
   });
-  reg('jegit.applyPatch', async () => {
-    const uris = await vscode.window.showOpenDialog({
-      canSelectMany: false,
-      filters: { Patch: ['patch', 'diff'] },
-      openLabel: 'Apply Patch',
-    });
-    if (!uris || !uris.length) return;
-    try {
-      await git.applyPatch(uris[0].fsPath);
-      vscode.window.showInformationMessage('JeGit: patch applied.');
-      await repo.refresh();
-    } catch (err) {
-      vscode.window.showErrorMessage(
-        `JeGit: ${err instanceof Error ? err.message : String(err)} (patch may not apply cleanly)`,
-      );
-    }
-  });
+  registerPatchCommands(context, repo);
 
   const blame = new BlameController(repo);
   context.subscriptions.push(blame);
