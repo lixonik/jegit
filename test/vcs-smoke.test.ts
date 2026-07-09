@@ -146,6 +146,19 @@ describe('vcs.js webview smoke', () => {
     expect(text).toContain('Spike');
   });
 
+  it('highlights log search matches and clears them with the query', () => {
+    const search = document.getElementById('log-search') as HTMLInputElement;
+    search.value = 'filter';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+    const marks = document.querySelectorAll('#log-list .lg-hl');
+    expect(marks.length).toBeGreaterThan(0);
+    expect(marks[0].textContent!.toLowerCase()).toBe('filter');
+
+    search.value = '';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(document.querySelectorAll('#log-list .lg-hl').length).toBe(0);
+  });
+
   it('renders the details panel from commitDetailsData', () => {
     sendToWebview({
       type: 'commitDetailsData',
