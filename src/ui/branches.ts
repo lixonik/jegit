@@ -226,16 +226,18 @@ export async function performBranchAction(
 }
 
 async function tagActions(repo: Repository, tag: string): Promise<void> {
-  type Act = vscode.QuickPickItem & { a: 'checkout' | 'delete' };
+  type Act = vscode.QuickPickItem & { a: 'checkout' | 'newBranch' | 'delete' };
   const pick = await vscode.window.showQuickPick<Act>(
     [
       { label: '$(check) Checkout Tag (detached HEAD)', a: 'checkout' },
+      { label: `$(git-branch) New Branch from ${tag}...`, a: 'newBranch' },
       { label: '$(trash) Delete Tag', a: 'delete' },
     ],
     { placeHolder: tag },
   );
   if (!pick) return;
   if (pick.a === 'checkout') return checkoutRef(repo, tag);
+  if (pick.a === 'newBranch') return newBranchFrom(repo, tag);
   const ok = await vscode.window.showWarningMessage(`Delete tag ${tag}?`, { modal: true }, 'Delete');
   if (ok !== 'Delete') return;
   try {
