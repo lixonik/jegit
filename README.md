@@ -16,6 +16,8 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 - Files colored by status with folder/file icons; **merge conflicts** detected.
 - **Commit** the checked files, **Commit and Push**, **Amend** (prefilled),
   **Sign-off**, **commit as another author**, and per-hunk **Commit Selected Hunks**.
+- **Commit message inspections** (subject length, blank line before the body)
+  with a JetBrains-style "Commit Anyway" confirmation.
 - **Rollback**, **Shelve**, **Create Patch**, **Add to .gitignore**; click a file
   for a HEAD diff.
 - `Ctrl+Enter` commits, `Ctrl+Shift+Enter` commits and pushes.
@@ -39,14 +41,15 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 ### Branches and remotes
 - A status-bar widget (`branch ↓behind ↑ahead`) and the panel header open the
   **Branches popup**: Checkout, New, Merge, Rebase, Rename, Delete, Compare,
-  **Set Upstream**.
+  **Show Diff with Working Tree**, **Set Upstream**.
 - **Fetch**, **Update** (fetch + pull), **Push** (with an outgoing-commit preview),
   **Force Push**, **Push Tags**, and **Manage Remotes** (add / rename / change
   URL / remove).
 
 ### Editor
-- **Annotate with Git Blame**, **Show File History** (with restore to a revision),
-  **Apply Patch** (from a file or the clipboard), **Stash / Unstash**, and **Copy Path**.
+- **Annotate with Git Blame** (colored by commit age), **Show File History**
+  (with restore to a revision), **Apply Patch** (from a file or the clipboard),
+  **Stash / Unstash** (with a changed-files preview), and **Copy Path**.
 
 ## Development
 
@@ -66,6 +69,7 @@ any git repository. The **JeGit** panel opens in the bottom tool-window area
 
 - `jegit.log.maxCount` – maximum commits loaded in the Log tab.
 - `jegit.panel.autoReveal` – reveal the JeGit panel automatically on startup.
+- `jegit.stagingArea` – use Staged / Unstaged groups instead of changelists.
 
 ## License
 
