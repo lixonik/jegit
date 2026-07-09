@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { LocalChangesController } from '../src/ui/localChangesController';
 import { DEFAULT_CHANGELIST_ID } from '../src/model/changelistStore';
 import type { Repository } from '../src/model/repository';
@@ -156,6 +159,58 @@ describe('LocalChangesController', () => {
     await ctrl.handle({ type: 'stage', paths: [] } as Incoming);
     expect(repo.git.add).not.toHaveBeenCalled();
     expect(repo.refresh).toHaveBeenCalled();
+  });
+});
+
+describe('LocalChangesController addToGitignore and recall', () => {
+  let root: string;
+
+  beforeEach(() => {
+    root = fs.mkdtempSync(path.join(os.tmpdir(), 'jegit-gitignore-'));
+    win.showQuickPick = async () => undefined;
+    win.showInformationMessage = async () => undefined;
+    win.showErrorMessage = async () => undefined;
+  });
+
+  function makeFsRepo(overrides: Record<string, unknown> = {}) {
+    return makeRepo({ absUri: (rel: string) => ({ fsPath: path.join(root, rel) }), ...overrides });
+  }
+
+  it('creates .gitignore and appends the entry', async () => {
+    const { ctrl } = makeController(makeFsRepo());
+    await ctrl.handle({ type: 'addToGitignore', path: 'dist/' } as Incoming);
+    expect(fs.readFileSync(path.join(root, '.gitignore'), 'utf8')).toBe('dist/\n');
+  });
+
+  it('does not duplicate an existing entry', async () => {
+    fs.writeFileSync(path.join(root, '.gitignore'), 'dist/\n');
+    const { ctrl } = makeController(makeFsRepo());
+    await ctrl.handle({ type: 'addToGitignore', path: 'dist/' } as Incoming);
+    expect(fs.readFileSync(path.join(root, '.gitignore'), 'utf8')).toBe('dist/\n');
+  });
+
+  it('inserts a separator when the file has no trailing newline', async () => {
+    fs.writeFileSync(path.join(root, '.gitignore'), 'node_modules/');
+    const { ctrl } = makeController(makeFsRepo());
+    await ctrl.handle({ type: 'addToGitignore', path: 'dist/' } as Incoming);
+    expect(fs.readFileSync(path.join(root, '.gitignore'), 'utf8')).toBe('node_modules/\ndist/\n');
+  });
+
+  it('posts the picked recent commit message back to the webview', async () => {
+    const repo = makeFsRepo({
+      git: {
+        add: vi.fn(async () => undefined),
+        unstage: vi.fn(async () => undefined),
+        commitIndex: vi.fn(async () => undefined),
+        recentCommitMessages: vi.fn(async () => ['Fix a\n\nbody', 'Fix b']),
+        commitBody: vi.fn(async () => ''),
+        raw: vi.fn(async () => ''),
+      },
+    });
+    win.showQuickPick = async () => ({ label: 'Fix a', value: 'Fix a\n\nbody' });
+    const { ctrl, posts } = makeController(repo);
+    await ctrl.handle({ type: 'recallMessage' } as Incoming);
+    expect(posts).toContainEqual({ type: 'setCommitMessage', text: 'Fix a\n\nbody' });
   });
 });
 
