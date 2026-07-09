@@ -49,6 +49,48 @@ describe('Git.pushUpTo', () => {
   });
 });
 
+class PatchGit extends Git {
+  constructor(private readonly behavior: (args: string[]) => Promise<string>) {
+    super('D:/repo');
+  }
+
+  override async raw(args: string[]): Promise<string> {
+    return this.behavior(args);
+  }
+}
+
+describe('Git.applyPatch3way', () => {
+  it('reports clean when the straight apply succeeds', async () => {
+    const git = new PatchGit(async () => '');
+    expect(await git.applyPatch3way('p.patch')).toBe('clean');
+  });
+
+  it('falls back to a 3-way merge when the straight apply fails', async () => {
+    const git = new PatchGit(async (args) => {
+      if (args[0] === 'apply' && !args.includes('--3way')) throw new Error('does not apply');
+      return '';
+    });
+    expect(await git.applyPatch3way('p.patch')).toBe('clean');
+  });
+
+  it('reports conflicts when the 3-way merge leaves unmerged entries', async () => {
+    const git = new PatchGit(async (args) => {
+      if (args[0] === 'apply') throw new Error('applied with conflicts');
+      if (args[0] === 'ls-files') return '100644 abc 1\tsrc/a.ts\n';
+      return '';
+    });
+    expect(await git.applyPatch3way('p.patch')).toBe('conflicts');
+  });
+
+  it('rethrows when the patch cannot be applied at all', async () => {
+    const git = new PatchGit(async (args) => {
+      if (args[0] === 'apply') throw new Error('corrupt patch');
+      return '';
+    });
+    await expect(git.applyPatch3way('p.patch')).rejects.toThrow('corrupt patch');
+  });
+});
+
 describe('Git argument assembly', () => {
   it('commits with the picked paths only', async () => {
     const git = new RecordingGit();
@@ -127,6 +169,13 @@ describe('Git argument assembly', () => {
     };
     expect(await failing.showHead('src/a.ts')).toBe('');
     expect(await failing.showStage(3, 'src/a.ts')).toBe('');
+  });
+
+  it('unstages only a non-empty selection', async () => {
+    const git = new RecordingGit();
+    await git.unstage([]);
+    await git.unstage(['a.ts']);
+    expect(git.calls).toEqual([['reset', '-q', 'HEAD', '--', 'a.ts']]);
   });
 
   it('restores a file from a revision', async () => {
