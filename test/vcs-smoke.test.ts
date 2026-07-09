@@ -176,6 +176,24 @@ describe('vcs.js webview smoke', () => {
     expect(withPush.message).toBe('Hotkey commit and push');
   });
 
+  it('prefills and clears the message with the amend checkbox', () => {
+    const msg = document.getElementById('message') as HTMLTextAreaElement;
+    const amend = document.getElementById('amend') as HTMLInputElement;
+    msg.value = '';
+    msg.dispatchEvent(new Event('input', { bubbles: true }));
+
+    amend.checked = true;
+    amend.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'getLastCommitMessage' });
+
+    sendToWebview({ type: 'lastCommitMessage', message: 'Previous subject' });
+    expect(msg.value).toBe('Previous subject');
+
+    amend.checked = false;
+    amend.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(msg.value).toBe('');
+  });
+
   it('routes a conflicted file to the merge resolver on double-click', () => {
     const conflicted = {
       ...changeItem,
