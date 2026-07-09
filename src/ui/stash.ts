@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { Repository } from '../model/repository';
+import { REV_SCHEME } from './quickDiff';
 
 /** git stash push, with an optional message. */
 export async function stashChanges(repo: Repository): Promise<void> {
@@ -41,9 +42,10 @@ export async function unstash(repo: Repository): Promise<void> {
     return;
   }
 
-  type Act = vscode.QuickPickItem & { a: 'apply' | 'pop' | 'drop' | 'branch' };
+  type Act = vscode.QuickPickItem & { a: 'apply' | 'pop' | 'drop' | 'branch' | 'files' };
   const action = await vscode.window.showQuickPick<Act>(
     [
+      { label: '$(diff) Show Changed Files', a: 'files' },
       { label: '$(check) Apply (keep stash)', a: 'apply' },
       { label: '$(arrow-down) Pop (apply and remove)', a: 'pop' },
       { label: '$(git-branch) Unstash to New Branch...', a: 'branch' },
@@ -52,6 +54,23 @@ export async function unstash(repo: Repository): Promise<void> {
     { placeHolder: pick.ref },
   );
   if (!action) return;
+
+  if (action.a === 'files') {
+    const files = await repo.git.diffRefs(`${pick.ref}^`, pick.ref);
+    if (!files.length) {
+      vscode.window.showInformationMessage('JeGit: the stash has no tracked changes.');
+      return;
+    }
+    type F = vscode.QuickPickItem & { path: string };
+    const fileItems: F[] = files.map((f) => ({ label: f.path, description: f.status, path: f.path }));
+    const file = await vscode.window.showQuickPick(fileItems, { placeHolder: `Files in ${pick.ref}` });
+    if (!file) return;
+    const left = vscode.Uri.from({ scheme: REV_SCHEME, path: '/' + file.path, query: `${pick.ref}^` });
+    const right = vscode.Uri.from({ scheme: REV_SCHEME, path: '/' + file.path, query: pick.ref });
+    const name = file.path.split('/').pop() ?? file.path;
+    await vscode.commands.executeCommand('vscode.diff', left, right, `${name} (${pick.ref})`);
+    return;
+  }
 
   try {
     if (action.a === 'apply') {
