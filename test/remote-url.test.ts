@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { toWebUrl, commitWebUrl, fileWebUrl } from '../src/util/remoteUrl';
+import { toWebUrl, commitWebUrl, fileWebUrl, guessCloneDirName } from '../src/util/remoteUrl';
 
 describe('toWebUrl', () => {
   it('https with .git', () => {
@@ -26,6 +26,22 @@ describe('toWebUrl', () => {
   it('empty or invalid', () => {
     expect(toWebUrl('')).toBe('');
     expect(toWebUrl('not-a-url')).toBe('');
+  });
+});
+
+describe('guessCloneDirName', () => {
+  it('takes the last path segment and strips .git', () => {
+    expect(guessCloneDirName('https://github.com/user/repo.git')).toBe('repo');
+  });
+  it('ignores trailing slashes', () => {
+    expect(guessCloneDirName('https://github.com/user/repo/')).toBe('repo');
+  });
+  it('scp shorthand', () => {
+    expect(guessCloneDirName('git@github.com:user/repo.git')).toBe('repo');
+  });
+  it('falls back to repo when nothing usable remains', () => {
+    expect(guessCloneDirName('')).toBe('repo');
+    expect(guessCloneDirName('.git')).toBe('repo');
   });
 });
 

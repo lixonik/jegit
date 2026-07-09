@@ -1,4 +1,4 @@
-import { isDefined, isEmpty } from './guards';
+import { isDefined, isEmpty, isNil } from './guards';
 
 /** Convert a git remote URL (https or ssh/scp) to a browseable web base URL. */
 export function toWebUrl(remote: string): string {
@@ -11,6 +11,14 @@ export function toWebUrl(remote: string): string {
   const m = /^(?:ssh|https?):\/\/(?:[^@/]+@)?([^/]+)\/(.+)$/.exec(s);
   if (isDefined(m)) return `https://${m[1].replace(/:\d+$/, '')}/${m[2]}`;
   return '';
+}
+
+/** Guess a directory name for a clone from its remote URL. */
+export function guessCloneDirName(url: string): string {
+  const last = url.trim().replace(/\/+$/, '').split('/').pop();
+  if (isNil(last)) return 'repo';
+  const name = last.replace(/\.git$/, '');
+  return isEmpty(name) ? 'repo' : name;
 }
 
 export function commitWebUrl(web: string, hash: string): string {
