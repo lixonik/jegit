@@ -11,6 +11,8 @@ export const window: Record<string, (...args: unknown[]) => unknown> = {
 
 export const StatusBarAlignment = { Left: 1, Right: 2 };
 
+export const ViewColumn = { Active: -1, One: 1, Two: 2 };
+
 export const commands: Record<string, (...args: unknown[]) => Promise<unknown>> = {
   executeCommand: async () => undefined,
 };
