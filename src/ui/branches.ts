@@ -133,6 +133,32 @@ export async function performBranchAction(
         await repo.git.setUpstream(ref);
         break;
       case 'compare': {
+        const [incoming, outgoing] = await Promise.all([
+          repo.git.rangeCommits(`${current}..${ref}`),
+          repo.git.rangeCommits(`${ref}..${current}`),
+        ]);
+        type C = vscode.QuickPickItem & { view: 'in' | 'out' | 'files' };
+        const choice = await vscode.window.showQuickPick<C>(
+          [
+            { label: `$(arrow-down) Commits in ${ref} not in ${current}`, description: String(incoming.length), view: 'in' },
+            { label: `$(arrow-up) Commits in ${current} not in ${ref}`, description: String(outgoing.length), view: 'out' },
+            { label: '$(diff) Changed files', view: 'files' },
+          ],
+          { placeHolder: `Compare ${current} with ${ref}` },
+        );
+        if (!choice) return;
+        if (choice.view !== 'files') {
+          const commits = choice.view === 'in' ? incoming : outgoing;
+          if (!commits.length) {
+            vscode.window.showInformationMessage('JeGit: no commits in this direction.');
+            return;
+          }
+          await vscode.window.showQuickPick(
+            commits.map((c) => ({ label: c.subject, description: c.hash.slice(0, 7) })).reverse(),
+            { placeHolder: `${commits.length} commit(s)` },
+          );
+          return;
+        }
         const files = await repo.git.diffRefs(current, ref);
         if (!files.length) {
           vscode.window.showInformationMessage(`JeGit: no differences between ${current} and ${ref}.`);

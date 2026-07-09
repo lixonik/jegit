@@ -19,6 +19,7 @@ function makeRepo(gitOverrides: Record<string, unknown> = {}): Repository {
       renameBranch: vi.fn(async () => undefined),
       deleteBranch: vi.fn(async () => undefined),
       diffRefs: vi.fn(async () => []),
+      rangeCommits: vi.fn(async () => [{ hash: 'abcdef1234', subject: 'Fix a' }]),
       checkoutNew: vi.fn(async () => undefined),
       ...gitOverrides,
     },
@@ -101,6 +102,15 @@ describe('performBranchAction', () => {
     await performBranchAction(repo, 'feature/x', 'main', false, 'checkoutUpdate');
     expect(repo.git.checkout).toHaveBeenCalledWith('feature/x');
     expect(repo.git.pull).toHaveBeenCalledWith(false);
+  });
+
+  it('compare queries commits in both directions', async () => {
+    const repo = makeRepo();
+    const answers: unknown[] = [{ label: 'in', view: 'in' }, undefined];
+    win.showQuickPick = async () => answers.shift();
+    await performBranchAction(repo, 'feature/x', 'main', false, 'compare');
+    expect(repo.git.rangeCommits).toHaveBeenCalledWith('main..feature/x');
+    expect(repo.git.rangeCommits).toHaveBeenCalledWith('feature/x..main');
   });
 
   it('checkout and rebase switches then rebases onto the previous branch', async () => {
