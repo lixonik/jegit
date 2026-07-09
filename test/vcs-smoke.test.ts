@@ -146,6 +146,36 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'openDiff', path: 'src/a.ts', untracked: false });
   });
 
+  it('commits via Ctrl+Enter and commits-and-pushes via Ctrl+Shift+Enter', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [changeItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const msg = document.getElementById('message') as HTMLTextAreaElement;
+    msg.value = 'Hotkey commit';
+    msg.dispatchEvent(new Event('input', { bubbles: true }));
+    const commit = document.getElementById('commit') as HTMLButtonElement;
+    if (commit.disabled) {
+      (document.querySelector('#tree input[type=checkbox]') as HTMLInputElement).click();
+    }
+    msg.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true }));
+    const plain = posted.filter((p) => p.type === 'commit').at(-1) as { push: boolean };
+    expect(plain.push).toBe(false);
+
+    msg.value = 'Hotkey commit and push';
+    msg.dispatchEvent(new Event('input', { bubbles: true }));
+    msg.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, shiftKey: true, bubbles: true }));
+    const withPush = posted.filter((p) => p.type === 'commit').at(-1) as { push: boolean; message: string };
+    expect(withPush.push).toBe(true);
+    expect(withPush.message).toBe('Hotkey commit and push');
+  });
+
   it('routes a conflicted file to the merge resolver on double-click', () => {
     const conflicted = {
       ...changeItem,
