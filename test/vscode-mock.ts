@@ -24,8 +24,11 @@ export const workspace = {
 export const Uri = {
   from: (parts: object) => parts,
   parse: (value: string) => ({ value }),
+  file: (fsPath: string) => ({ fsPath }),
   joinPath: (...parts: unknown[]) => ({ fsPath: parts.map(String).join('/') }),
 };
+
+export const QuickPickItemKind = { Separator: -1, Default: 0 };
 
 export class EventEmitter<T> {
   private listeners: ((e: T) => void)[] = [];
