@@ -4,6 +4,7 @@ import { Git } from './git/git';
 import { registerBootstrapCommands } from './commands/bootstrap';
 import { registerPatchCommands } from './commands/patch';
 import { registerOperationCommands } from './commands/operations';
+import { registerRemoteCommands } from './commands/remote';
 import { ChangelistStore } from './model/changelistStore';
 import { ShelfStore } from './model/shelfStore';
 import { Repository } from './model/repository';
@@ -13,7 +14,6 @@ import { showBranches } from './ui/branches';
 import { manageRemotes } from './ui/remotes';
 import { manageWorktrees } from './ui/worktrees';
 import { toWebUrl, fileWebUrl } from './util/remoteUrl';
-import { pushFlow, updateFlow } from './ui/remoteOps';
 import { stashChanges, unstash } from './ui/stash';
 import { BlameController } from './ui/blame';
 import { showMergeResolver } from './ui/mergeResolver';
@@ -116,48 +116,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
     }
   });
-  reg('jegit.push', () => pushFlow(repo));
-  reg('jegit.update', () => updateFlow(repo));
-  reg('jegit.fetch', async () => {
-    try {
-      await git.fetch();
-      vscode.window.showInformationMessage('JeGit: fetched.');
-    } catch (err) {
-      vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
-    } finally {
-      await repo.refresh();
-    }
-  });
-  reg('jegit.pushForce', async () => {
-    if (!(await git.hasUpstream())) {
-      vscode.window.showWarningMessage('JeGit: no upstream to push to.');
-      return;
-    }
-    const ok = await vscode.window.showWarningMessage(
-      'Force push (--force-with-lease)? This overwrites the remote branch.',
-      { modal: true },
-      'Force Push',
-    );
-    if (ok !== 'Force Push') return;
-    try {
-      await git.pushForce();
-      vscode.window.showInformationMessage('JeGit: force-pushed.');
-    } catch (err) {
-      vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
-    } finally {
-      await repo.refresh();
-    }
-  });
-  reg('jegit.pushTags', async () => {
-    try {
-      await git.pushTags();
-      vscode.window.showInformationMessage('JeGit: pushed tags.');
-    } catch (err) {
-      vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
-    } finally {
-      await repo.refresh();
-    }
-  });
+  registerRemoteCommands(context, repo);
   registerPatchCommands(context, repo);
 
   const blame = new BlameController(repo);
@@ -190,43 +149,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (!file) return;
     const uri = vscode.Uri.from({ scheme: REV_SCHEME, path: '/' + file, query: rev.trim() });
     await vscode.commands.executeCommand('vscode.open', uri);
-  });
-  reg('jegit.unshallow', async () => {
-    if (!(await git.isShallow())) {
-      vscode.window.showInformationMessage('JeGit: this repository is not shallow.');
-      return;
-    }
-    try {
-      await git.unshallow();
-      vscode.window.showInformationMessage('JeGit: repository unshallowed.');
-    } catch (err) {
-      vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
-    } finally {
-      await repo.refresh();
-    }
-  });
-  reg('jegit.resetToRemote', async () => {
-    const upstream = await git.upstreamRef();
-    if (!upstream) {
-      vscode.window.showInformationMessage('JeGit: the current branch has no upstream.');
-      return;
-    }
-    const { current } = await git.branches();
-    const ok = await vscode.window.showWarningMessage(
-      `Reset local branch ${current} to ${upstream}? Local commits will be dropped.`,
-      { modal: true },
-      'Reset',
-    );
-    if (ok !== 'Reset') return;
-    try {
-      await git.fetch().catch(() => undefined);
-      await git.resetHard(upstream);
-      vscode.window.showInformationMessage(`JeGit: ${current} reset to ${upstream}.`);
-    } catch (err) {
-      vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
-    } finally {
-      await repo.refresh();
-    }
   });
   reg('jegit.resolveConflicts', async () => {
     const status = await git.status().catch(() => []);
