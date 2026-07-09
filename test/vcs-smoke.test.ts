@@ -228,6 +228,30 @@ describe('vcs.js webview smoke', () => {
     expect(after[1].checked).toBe(true);
   });
 
+  it('toggles between the directory tree and the flat list', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [changeItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const tree = document.getElementById('tree')!;
+    const hasDirNode = () => tree.querySelector('.fname.dir') !== null;
+    expect(hasDirNode()).toBe(true);
+
+    const toggle = document.getElementById('tb-group') as HTMLElement;
+    toggle.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(hasDirNode()).toBe(false);
+    expect(tree.querySelector('.fdir')!.textContent).toBe('src');
+
+    toggle.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(hasDirNode()).toBe(true);
+  });
+
   it('routes a conflicted file to the merge resolver on double-click', () => {
     const conflicted = {
       ...changeItem,
