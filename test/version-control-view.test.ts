@@ -41,7 +41,11 @@ function resolve(view: VersionControlView) {
     onDidChangeVisibility: () => ({ dispose: () => undefined }),
   };
   view.resolveWebviewView(panelView as never);
-  return { webview, send: (m: unknown) => handler!(m) };
+  const send = async (m: unknown) => {
+    handler!(m);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  };
+  return { webview, send };
 }
 
 describe('VersionControlView', () => {
