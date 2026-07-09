@@ -563,4 +563,16 @@ describe('vcs.js webview smoke', () => {
     expect(details).toContain('a.ts');
     expect(details).toContain('Fix the filter');
   });
+
+  it('opens the revision diff when a details file is clicked', () => {
+    const fileRow = [...document.querySelectorAll('#log-details *')].find(
+      (el) => el.textContent?.trim() === 'a.ts',
+    ) as HTMLElement;
+    expect(fileRow).toBeDefined();
+    fileRow.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const call = posted.filter((p) => p.type === 'openRevDiff').at(-1) as { hash: string; parent: string; path: string };
+    expect(call.hash).toBe('b'.repeat(40));
+    expect(call.parent).toBe('a'.repeat(40));
+    expect(call.path).toBe('src/a.ts');
+  });
 });
