@@ -146,6 +146,33 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'openDiff', path: 'src/a.ts', untracked: false });
   });
 
+  it('routes a conflicted file to the merge resolver on double-click', () => {
+    const conflicted = {
+      ...changeItem,
+      path: 'src/conflict.ts',
+      status: 'UU',
+      statusLabel: 'Merge conflict',
+      letter: 'U',
+      conflicted: true,
+    };
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [conflicted] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const fileNode = [...document.querySelectorAll('#tree *')].find(
+      (el) => el.textContent?.trim() === 'conflict.ts',
+    ) as HTMLElement;
+    fileNode.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'mergeResolve', path: 'src/conflict.ts' });
+    expect(posted.filter((p) => p.type === 'openDiff' && p.path === 'src/conflict.ts')).toHaveLength(0);
+  });
+
   it('renders the log graph rows from logData', () => {
     sendToWebview({
       type: 'logData',
