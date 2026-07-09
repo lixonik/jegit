@@ -128,6 +128,24 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'shelve', items: [{ path: 'src/a.ts', untracked: false }] });
   });
 
+  it('opens the HEAD diff when a file row is double-clicked', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [changeItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const fileNode = [...document.querySelectorAll('#tree *')].find(
+      (el) => el.textContent?.trim() === 'a.ts',
+    ) as HTMLElement;
+    fileNode.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'openDiff', path: 'src/a.ts', untracked: false });
+  });
+
   it('renders the log graph rows from logData', () => {
     sendToWebview({
       type: 'logData',
