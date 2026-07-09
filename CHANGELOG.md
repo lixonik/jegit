@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.2.0
+
+### Features
+- Commit message inspections (subject length, blank line before the body) with a "Commit Anyway" confirmation.
+- Annotate (git blame) colored by commit age.
+- Branches popup: Show Diff with Working Tree, Checkout and Rebase onto Current, and tag actions (Checkout / Delete Tag).
+- Stash: a changed-files preview before applying or dropping.
+- Log: search-match highlighting, branches and tags containing the selected commit in the details panel, and recalling a recent commit message.
+- Web links: an explicit ssh port is dropped from remote web URLs.
+
+### Internal
+- `activate()` split into focused command modules under `src/commands`.
+- The Version Control webview split into per-tab controllers (Local Changes / Log / Shelf) plus a separate HTML module.
+- Git output parsers moved to `src/git/parsers`; all process spawning routed through a single `execGit` runner.
+- Stash, worktree, remote, and tag operations grouped into injectable domain services (`Git.stash` / `Git.worktree` / `Git.remote` / `Git.tag`).
+- Explicit value guards (`isNil` / `isEmpty` / `notEmpty`) adopted across the codebase.
+- The test suite grew from 176 to 269 unit tests (tab controllers, UI flows, domain services, message linting).
+
 ## 0.1.0
 
 A feature-complete JetBrains-style Git tool window.
