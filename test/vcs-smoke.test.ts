@@ -252,6 +252,27 @@ describe('vcs.js webview smoke', () => {
     expect(hasDirNode()).toBe(true);
   });
 
+  it('shelves and rolls back the checked files from the toolbar', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [changeItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const fileBox = [...document.querySelectorAll('#tree input[type=checkbox]')].at(-1) as HTMLInputElement;
+    if (!fileBox.checked) fileBox.click();
+
+    document.getElementById('tb-shelve')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'shelve', items: [{ path: 'src/a.ts', untracked: false }] });
+
+    document.getElementById('tb-rollback')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'rollback', items: [{ path: 'src/a.ts', untracked: false }] });
+  });
+
   it('routes a conflicted file to the merge resolver on double-click', () => {
     const conflicted = {
       ...changeItem,
