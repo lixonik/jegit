@@ -14,6 +14,41 @@ class RecordingGit extends Git {
   }
 }
 
+class ScriptedGit extends Git {
+  readonly calls: string[][] = [];
+
+  constructor(private readonly responses: Record<string, string | Error>) {
+    super('D:/repo');
+  }
+
+  override async raw(args: string[]): Promise<string> {
+    this.calls.push(args);
+    const response = this.responses[args.join(' ')];
+    if (response instanceof Error) throw response;
+    return response ?? '';
+  }
+}
+
+describe('Git.pushUpTo', () => {
+  it('pushes the commit to the upstream remote of the current branch', async () => {
+    const git = new ScriptedGit({
+      'rev-parse --abbrev-ref HEAD': 'main\n',
+      'rev-parse --abbrev-ref --symbolic-full-name @{u}': 'fork/main\n',
+    });
+    await git.pushUpTo('abc123');
+    expect(git.calls.at(-1)).toEqual(['push', 'fork', 'abc123:refs/heads/main']);
+  });
+
+  it('falls back to origin when the branch has no upstream', async () => {
+    const git = new ScriptedGit({
+      'rev-parse --abbrev-ref HEAD': 'main\n',
+      'rev-parse --abbrev-ref --symbolic-full-name @{u}': new Error('no upstream'),
+    });
+    await git.pushUpTo('abc123');
+    expect(git.calls.at(-1)).toEqual(['push', 'origin', 'abc123:refs/heads/main']);
+  });
+});
+
 describe('Git argument assembly', () => {
   it('commits with the picked paths only', async () => {
     const git = new RecordingGit();
