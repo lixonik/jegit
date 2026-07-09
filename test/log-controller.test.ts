@@ -25,6 +25,11 @@ function makeGit(overrides: Record<string, unknown> = {}) {
     checkout: vi.fn(async () => undefined),
     checkoutNew: vi.fn(async () => undefined),
     cherryPick: vi.fn(async () => undefined),
+    pushUpTo: vi.fn(async () => undefined),
+    commitFiles: vi.fn(async () => [{ status: 'M', path: 'a.ts' }]),
+    commitCommitter: vi.fn(async () => ({ name: 'Dev', date: '2026-07-01' })),
+    branchesContaining: vi.fn(async () => ['main']),
+    tag: { containing: vi.fn(async () => ['v1']), create: vi.fn(async () => undefined) },
     ...overrides,
   };
 }
@@ -135,6 +140,36 @@ describe('LogController', () => {
     const { ctrl } = makeController();
     await ctrl.handle({ type: 'copyHash', hash: 'abcdef1234567890' } as Incoming);
     expect(writeText).toHaveBeenCalledWith('abcdef1234567890');
+  });
+
+  it('refuses to push up to a commit outside the current branch', async () => {
+    const { ctrl, git } = makeController(makeGit({ isAncestor: vi.fn(async () => false) }));
+    await ctrl.handle({ type: 'pushUpTo', hash: 'abc' } as Incoming);
+    expect(git.pushUpTo).not.toHaveBeenCalled();
+  });
+
+  it('pushes up to a commit after the modal confirmation', async () => {
+    const { ctrl, git } = makeController();
+    await ctrl.handle({ type: 'pushUpTo', hash: 'abc' } as Incoming);
+    expect(git.pushUpTo).not.toHaveBeenCalled();
+
+    win.showWarningMessage = async () => 'Push';
+    await ctrl.handle({ type: 'pushUpTo', hash: 'abc' } as Incoming);
+    expect(git.pushUpTo).toHaveBeenCalledWith('abc');
+  });
+
+  it('aggregates the commit details into a single payload', async () => {
+    const { ctrl, posts } = makeController();
+    await ctrl.handle({ type: 'commitDetails', hash: 'abc' } as Incoming);
+    expect(posts[0]).toEqual({
+      type: 'commitDetailsData',
+      hash: 'abc',
+      files: [{ status: 'M', path: 'a.ts' }],
+      body: 'old message',
+      committer: { name: 'Dev', date: '2026-07-01' },
+      branches: ['main'],
+      tags: ['v1'],
+    });
   });
 
   it('refreshes the tree and the log after a log operation', async () => {
