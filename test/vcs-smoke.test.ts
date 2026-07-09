@@ -460,6 +460,24 @@ describe('vcs.js webview smoke', () => {
     expect(cmd.ref).toBe('feature/x');
   });
 
+  it('compares two ctrl-clicked commits via the context menu', () => {
+    const rows = [...document.querySelectorAll('.log-row')] as HTMLElement[];
+    expect(rows.length).toBe(2);
+    rows[0].dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: true }));
+    rows[1].dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: true }));
+    expect(rows[0].classList.contains('compare-sel')).toBe(true);
+    expect(rows[1].classList.contains('compare-sel')).toBe(true);
+
+    rows[0].dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const compare = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Compare Selected Versions',
+    ) as HTMLElement;
+    expect(compare).toBeDefined();
+    compare.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const call = posted.filter((p) => p.type === 'compareCommits').at(-1) as { a: string; b: string };
+    expect([call.a, call.b].sort()).toEqual(['a'.repeat(40), 'b'.repeat(40)]);
+  });
+
   it('renders the details panel from commitDetailsData', () => {
     sendToWebview({
       type: 'commitDetailsData',
