@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { Repository } from '../model/repository';
+import { ageColor } from '../util/blameAge';
 
 /** Toggleable per-line git blame annotation in the editor, like JetBrains Annotate. */
 export class BlameController implements vscode.Disposable {
@@ -56,7 +57,7 @@ export class BlameController implements vscode.Disposable {
       md.supportThemeIcons = true;
       options.push({
         range: new vscode.Range(i, 0, i, 0),
-        renderOptions: { before: { contentText: `${b.date} ${shorten(b.author, 16)}` } },
+        renderOptions: { before: { contentText: `${b.date} ${shorten(b.author, 16)}`, color: ageColor(b.date) } },
         hoverMessage: md,
       });
     }
