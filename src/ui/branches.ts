@@ -60,6 +60,7 @@ async function branchActions(repo: Repository, ref: string, current: string, isR
   if (ref !== current) {
     actions.push({ label: '$(check) Checkout', a: 'checkout' });
     actions.push({ label: '$(sync) Checkout and Update', a: 'checkoutUpdate' });
+    actions.push({ label: `$(git-pull-request) Checkout and Rebase onto ${current}`, a: 'checkoutRebase' });
   }
   actions.push({ label: `$(git-branch) New Branch from ${ref}...`, a: 'newfrom' });
   if (!isRemote && ref !== current) {
@@ -102,6 +103,10 @@ export async function performBranchAction(
         await repo.git.checkout(isRemote ? ref.substring(ref.indexOf('/') + 1) : ref);
         await repo.git.fetch().catch(() => undefined);
         await repo.git.pull(false);
+        break;
+      case 'checkoutRebase':
+        await repo.git.checkout(isRemote ? ref.substring(ref.indexOf('/') + 1) : ref);
+        await repo.git.rebaseOnto(current);
         break;
       case 'newfrom':
         await newBranchFrom(repo, ref);

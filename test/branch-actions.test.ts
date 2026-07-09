@@ -102,4 +102,11 @@ describe('performBranchAction', () => {
     expect(repo.git.checkout).toHaveBeenCalledWith('feature/x');
     expect(repo.git.pull).toHaveBeenCalledWith(false);
   });
+
+  it('checkout and rebase switches then rebases onto the previous branch', async () => {
+    const repo = makeRepo();
+    await performBranchAction(repo, 'feature/x', 'main', false, 'checkoutRebase');
+    expect(repo.git.checkout).toHaveBeenCalledWith('feature/x');
+    expect(repo.git.rebaseOnto).toHaveBeenCalledWith('main');
+  });
 });
