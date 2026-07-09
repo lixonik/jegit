@@ -68,7 +68,7 @@ any git repository. The **JeGit** panel opens in the bottom tool-window area
 
 ## Testing
 
-300+ vitest unit tests cover the git output parsers, the tab controllers
+350+ vitest unit tests cover the git output parsers, the tab controllers
 (Local Changes / Log / Shelf), the UI flows (branches, stash, worktrees,
 remotes, push/update, file history), the injectable domain services
 (`Git.stash` / `Git.worktree` / `Git.remote` / `Git.tag`), CLI argument
