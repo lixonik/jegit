@@ -19,6 +19,12 @@ export const env = {
 
 export const workspace = {
   getConfiguration: (_section?: string) => ({ get: <T>(_key: string, fallback: T): T => fallback }),
+  createFileSystemWatcher: () => ({
+    onDidChange: () => ({ dispose: () => undefined }),
+    onDidCreate: () => ({ dispose: () => undefined }),
+    onDidDelete: () => ({ dispose: () => undefined }),
+    dispose: () => undefined,
+  }),
 };
 
 export const Uri = {
