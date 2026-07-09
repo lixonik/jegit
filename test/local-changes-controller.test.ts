@@ -1,0 +1,160 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import * as vscode from 'vscode';
+import { LocalChangesController } from '../src/ui/localChangesController';
+import { DEFAULT_CHANGELIST_ID } from '../src/model/changelistStore';
+import type { Repository } from '../src/model/repository';
+import type { Incoming } from '../src/model/webviewMessages';
+
+type AnyFn = (...args: unknown[]) => Promise<unknown>;
+const win = vscode.window as unknown as Record<string, AnyFn>;
+const cmd = vscode.commands as unknown as Record<string, AnyFn>;
+
+function makeRepo(overrides: Record<string, unknown> = {}): Repository {
+  return {
+    store: {
+      activeId: 'cl1',
+      changelists: [
+        { id: 'cl1', name: 'Default' },
+        { id: 'cl2', name: 'Feature X' },
+      ],
+      getChangelist: (id: string) => ({ id, name: 'Feature X' }),
+    },
+    git: {
+      add: vi.fn(async () => undefined),
+      unstage: vi.fn(async () => undefined),
+      commitIndex: vi.fn(async () => undefined),
+      recentCommitMessages: vi.fn(async () => []),
+      commitBody: vi.fn(async () => ''),
+      raw: vi.fn(async () => ''),
+    },
+    commit: vi.fn(async () => undefined),
+    move: vi.fn(async () => undefined),
+    remove: vi.fn(async () => undefined),
+    setActive: vi.fn(async () => undefined),
+    newChangelist: vi.fn(async () => ({ id: 'cl3', name: 'New list' })),
+    rename: vi.fn(async () => undefined),
+    refresh: vi.fn(async () => undefined),
+    absUri: (rel: string) => ({ fsPath: 'Z:/nonexistent/' + rel }),
+    ...overrides,
+  } as unknown as Repository;
+}
+
+function makeController(repo = makeRepo()) {
+  const posts: Array<Record<string, unknown>> = [];
+  const ctrl = new LocalChangesController({ extensionUri: {} } as never, repo, (m) =>
+    posts.push(m as Record<string, unknown>),
+  );
+  return { ctrl, repo, posts };
+}
+
+const commitMsg = (over: Record<string, unknown> = {}): Incoming =>
+  ({
+    type: 'commit',
+    paths: ['a.ts'],
+    message: 'Fix the filter',
+    amend: false,
+    push: false,
+    signoff: false,
+    author: '',
+    ...over,
+  }) as Incoming;
+
+describe('LocalChangesController', () => {
+  beforeEach(() => {
+    win.showInputBox = async () => undefined;
+    win.showQuickPick = async () => undefined;
+    win.showWarningMessage = async () => undefined;
+    win.showInformationMessage = async () => undefined;
+    win.showErrorMessage = async () => undefined;
+    cmd.executeCommand = async () => undefined;
+  });
+
+  it('ignores messages of other tabs', async () => {
+    const { ctrl, posts } = makeController();
+    expect(await ctrl.handle({ type: 'requestLog' } as Incoming)).toBe(false);
+    expect(posts).toEqual([]);
+  });
+
+  it('refuses to delete the default changelist', async () => {
+    const { ctrl, repo } = makeController();
+    await ctrl.handle({ type: 'deleteChangelist', id: DEFAULT_CHANGELIST_ID } as Incoming);
+    expect(repo.remove).not.toHaveBeenCalled();
+    await ctrl.handle({ type: 'deleteChangelist', id: 'cl2' } as Incoming);
+    expect(repo.remove).toHaveBeenCalledWith('cl2');
+  });
+
+  it('requires files and a message to commit', async () => {
+    const { ctrl, repo } = makeController();
+    await ctrl.handle(commitMsg({ paths: [] }));
+    await ctrl.handle(commitMsg({ message: '   ' }));
+    expect(repo.commit).not.toHaveBeenCalled();
+  });
+
+  it('commits and notifies the webview', async () => {
+    const { ctrl, repo, posts } = makeController();
+    await ctrl.handle(commitMsg());
+    expect(repo.commit).toHaveBeenCalledWith(['a.ts'], 'Fix the filter', {
+      amend: false,
+      push: false,
+      signoff: false,
+      author: undefined,
+    });
+    expect(posts).toContainEqual({ type: 'committed' });
+  });
+
+  it('blocks a flagged message until the user confirms', async () => {
+    const { ctrl, repo } = makeController();
+    const longSubject = 'x'.repeat(80);
+    await ctrl.handle(commitMsg({ message: longSubject }));
+    expect(repo.commit).not.toHaveBeenCalled();
+
+    win.showWarningMessage = async () => 'Commit Anyway';
+    await ctrl.handle(commitMsg({ message: longSubject }));
+    expect(repo.commit).toHaveBeenCalled();
+  });
+
+  it('commits the staging area and pushes when asked', async () => {
+    const { ctrl, repo, posts } = makeController();
+    const exec = vi.fn(async () => undefined);
+    cmd.executeCommand = exec;
+    await ctrl.handle({ type: 'commitStaged', message: 'Fix the filter', push: true } as Incoming);
+    expect(repo.git.commitIndex).toHaveBeenCalledWith('Fix the filter');
+    expect(posts).toContainEqual({ type: 'committed' });
+    expect(exec).toHaveBeenCalledWith('jegit.push');
+    expect(repo.refresh).toHaveBeenCalled();
+  });
+
+  it('moves files to the picked changelist', async () => {
+    const { ctrl, repo } = makeController();
+    win.showQuickPick = async () => ({ label: 'Feature X', id: 'cl2' });
+    await ctrl.handle({ type: 'move', paths: ['a.ts'] } as Incoming);
+    expect(repo.move).toHaveBeenCalledWith(['a.ts'], 'cl2');
+  });
+
+  it('creates a changelist on the fly when moving to a new one', async () => {
+    const { ctrl, repo } = makeController();
+    win.showQuickPick = async () => ({ label: 'New changelist...', id: '__new__' });
+    win.showInputBox = async () => 'Hotfix';
+    await ctrl.handle({ type: 'move', paths: ['a.ts'] } as Incoming);
+    expect(repo.newChangelist).toHaveBeenCalledWith('Hotfix', false);
+    expect(repo.move).toHaveBeenCalledWith(['a.ts'], 'cl3');
+  });
+
+  it('rolls back tracked files only after confirmation', async () => {
+    const { ctrl, repo } = makeController();
+    await ctrl.handle({ type: 'rollback', items: [{ path: 'a.ts', untracked: false }] } as Incoming);
+    expect(repo.git.raw).not.toHaveBeenCalled();
+
+    win.showWarningMessage = async () => 'Rollback';
+    await ctrl.handle({ type: 'rollback', items: [{ path: 'a.ts', untracked: false }] } as Incoming);
+    expect(repo.git.raw).toHaveBeenCalledWith(['checkout', 'HEAD', '--', 'a.ts']);
+    expect(repo.refresh).toHaveBeenCalled();
+  });
+
+  it('skips staging when nothing is selected but still refreshes', async () => {
+    const { ctrl, repo } = makeController();
+    await ctrl.handle({ type: 'stage', paths: [] } as Incoming);
+    expect(repo.git.add).not.toHaveBeenCalled();
+    expect(repo.refresh).toHaveBeenCalled();
+  });
+});
