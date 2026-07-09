@@ -513,6 +513,42 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'addToGitignore', path: 'scratch.log' });
   });
 
+  it('moves a file and sets the active list from the changelist menus', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [
+          { id: 'default', name: 'Changes', active: true, files: [changeItem] },
+          { id: 'cl2', name: 'Feature X', active: false, files: [] },
+        ],
+      },
+      operation: null,
+      staging: null,
+    });
+    const tree = document.getElementById('tree')!;
+    const fileNode = [...tree.querySelectorAll('*')].find(
+      (el) => el.textContent?.trim() === 'a.ts',
+    ) as HTMLElement;
+    fileNode.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const move = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Move to Another Changelist...',
+    ) as HTMLElement;
+    move.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'move', paths: ['src/a.ts'] });
+
+    const listHeader = [...tree.querySelectorAll('*')].find(
+      (el) => el.textContent?.trim() === 'Feature X',
+    ) as HTMLElement;
+    listHeader.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const setActive = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Set Active Changelist',
+    ) as HTMLElement;
+    setActive.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'setActive', id: 'cl2' });
+  });
+
   it('renders the details panel from commitDetailsData', () => {
     sendToWebview({
       type: 'commitDetailsData',
