@@ -566,6 +566,17 @@ export class Git {
     return parseNameStatusZ(out);
   }
 
+  /** Files that differ between the given ref and the working tree. */
+  async diffWorkingTree(ref: string): Promise<{ status: string; path: string }[]> {
+    let out = '';
+    try {
+      out = await this.raw(['diff', '--name-status', '-z', ref]);
+    } catch {
+      return [];
+    }
+    return parseNameStatusZ(out);
+  }
+
   async applyCached(patchPath: string): Promise<void> {
     await this.raw(['apply', '--cached', '--whitespace=nowarn', patchPath]);
   }

@@ -70,6 +70,7 @@ async function branchActions(repo: Repository, ref: string, current: string, isR
     actions.push({ label: `$(git-pull-request) Rebase ${current} onto ${ref}`, a: 'rebase' });
     actions.push({ label: '$(git-compare) Compare with Current', a: 'compare' });
   }
+  actions.push({ label: '$(diff) Show Diff with Working Tree', a: 'diffWorkingTree' });
   if (!isRemote) {
     actions.push({ label: '$(edit) Rename...', a: 'rename' });
     if (ref !== current) actions.push({ label: '$(trash) Delete', a: 'delete' });
@@ -140,6 +141,26 @@ export async function performBranchAction(
         const right = vscode.Uri.from({ scheme: REV_SCHEME, path: '/' + file.path, query: ref });
         const name = file.path.split('/').pop() ?? file.path;
         await vscode.commands.executeCommand('vscode.diff', left, right, `${name} (${current} <-> ${ref})`);
+        return;
+      }
+      case 'diffWorkingTree': {
+        const files = await repo.git.diffWorkingTree(ref);
+        if (!files.length) {
+          vscode.window.showInformationMessage(`JeGit: the working tree matches ${ref}.`);
+          return;
+        }
+        type F = vscode.QuickPickItem & { path: string };
+        const items: F[] = files.map((f) => ({ label: f.path, description: f.status, path: f.path }));
+        const file = await vscode.window.showQuickPick(items, { placeHolder: `Diff with working tree: ${ref}` });
+        if (!file) return;
+        const left = vscode.Uri.from({ scheme: REV_SCHEME, path: '/' + file.path, query: ref });
+        const name = file.path.split('/').pop() ?? file.path;
+        await vscode.commands.executeCommand(
+          'vscode.diff',
+          left,
+          repo.absUri(file.path),
+          `${name} (${ref} <-> Working Tree)`,
+        );
         return;
       }
       case 'rename': {
