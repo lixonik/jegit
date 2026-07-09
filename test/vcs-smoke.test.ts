@@ -123,6 +123,29 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'commitDetails', hash: 'b'.repeat(40) });
   });
 
+  it('switches panels when a tab is clicked', () => {
+    const shelfTab = document.querySelector('.tab[data-tab="shelf"]') as HTMLElement;
+    shelfTab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(shelfTab.classList.contains('active')).toBe(true);
+    const shelfPanel = document.querySelector('.tabpanel[data-tab="shelf"]') as HTMLElement;
+    expect(shelfPanel.classList.contains('active')).toBe(true);
+    const localPanel = document.querySelector('.tabpanel[data-tab="local"]') as HTMLElement;
+    expect(localPanel.classList.contains('active')).toBe(false);
+  });
+
+  it('renders the shelf entries from shelfData', () => {
+    sendToWebview({
+      type: 'shelfData',
+      entries: [
+        { id: 's1', name: 'WIP dialogs', createdAt: '2026-07-09T12:00:00+03:00', files: ['src/a.ts'] },
+        { id: 's2', name: 'Spike', createdAt: '2026-07-08T12:00:00+03:00', files: ['src/b.ts'] },
+      ],
+    });
+    const text = document.getElementById('shelf-list')!.textContent;
+    expect(text).toContain('WIP dialogs');
+    expect(text).toContain('Spike');
+  });
+
   it('renders the details panel from commitDetailsData', () => {
     sendToWebview({
       type: 'commitDetailsData',
