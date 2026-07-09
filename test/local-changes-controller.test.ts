@@ -168,6 +168,7 @@ describe('LocalChangesController addToGitignore and recall', () => {
   beforeEach(() => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'jegit-gitignore-'));
     win.showQuickPick = async () => undefined;
+    win.showWarningMessage = async () => undefined;
     win.showInformationMessage = async () => undefined;
     win.showErrorMessage = async () => undefined;
   });
@@ -194,6 +195,24 @@ describe('LocalChangesController addToGitignore and recall', () => {
     const { ctrl } = makeController(makeFsRepo());
     await ctrl.handle({ type: 'addToGitignore', path: 'dist/' } as Incoming);
     expect(fs.readFileSync(path.join(root, '.gitignore'), 'utf8')).toBe('node_modules/\ndist/\n');
+  });
+
+  it('deletes untracked files from disk on a confirmed rollback', async () => {
+    fs.writeFileSync(path.join(root, 'scratch.ts'), 'temporary');
+    const repo = makeFsRepo();
+    win.showWarningMessage = async () => 'Rollback';
+    const { ctrl } = makeController(repo);
+    await ctrl.handle({ type: 'rollback', items: [{ path: 'scratch.ts', untracked: true }] } as Incoming);
+    expect(fs.existsSync(path.join(root, 'scratch.ts'))).toBe(false);
+    expect(repo.git.raw).not.toHaveBeenCalled();
+    expect(repo.refresh).toHaveBeenCalled();
+  });
+
+  it('keeps untracked files when the rollback is declined', async () => {
+    fs.writeFileSync(path.join(root, 'scratch.ts'), 'temporary');
+    const { ctrl } = makeController(makeFsRepo());
+    await ctrl.handle({ type: 'rollback', items: [{ path: 'scratch.ts', untracked: true }] } as Incoming);
+    expect(fs.existsSync(path.join(root, 'scratch.ts'))).toBe(true);
   });
 
   it('posts the picked recent commit message back to the webview', async () => {
