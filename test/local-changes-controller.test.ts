@@ -158,3 +158,72 @@ describe('LocalChangesController', () => {
     expect(repo.refresh).toHaveBeenCalled();
   });
 });
+
+const sampleDiff = [
+  'diff --git a/a.ts b/a.ts',
+  'index 1111111..2222222 100644',
+  '--- a/a.ts',
+  '+++ b/a.ts',
+  '@@ -1,3 +1,3 @@',
+  '-old',
+  '+new',
+  ' ctx',
+  '@@ -10,3 +10,3 @@',
+  '-old2',
+  '+new2',
+  ' ctx2',
+  '',
+].join('\n');
+
+describe('LocalChangesController commitHunks', () => {
+  function makeHunksRepo(diff = sampleDiff) {
+    return makeRepo({
+      git: {
+        add: vi.fn(async () => undefined),
+        unstage: vi.fn(async () => undefined),
+        commitIndex: vi.fn(async () => undefined),
+        recentCommitMessages: vi.fn(async () => []),
+        commitBody: vi.fn(async () => ''),
+        raw: vi.fn(async () => ''),
+        diffHead: vi.fn(async () => diff),
+        applyCached: vi.fn(async () => undefined),
+      },
+    });
+  }
+
+  beforeEach(() => {
+    win.showQuickPick = async () => undefined;
+    win.showInputBox = async () => undefined;
+    win.showInformationMessage = async () => undefined;
+    win.showErrorMessage = async () => undefined;
+  });
+
+  it('reports when the file has no changes', async () => {
+    const repo = makeHunksRepo('');
+    const info = vi.fn(async () => undefined);
+    win.showInformationMessage = info;
+    const { ctrl } = makeController(repo);
+    await ctrl.handle({ type: 'commitHunks', path: 'a.ts' } as Incoming);
+    expect(info).toHaveBeenCalled();
+    expect(repo.git.commitIndex).not.toHaveBeenCalled();
+  });
+
+  it('stages the picked hunks and commits the index', async () => {
+    const repo = makeHunksRepo();
+    win.showQuickPick = async () => [{ label: '@@ -1,3 +1,3 @@', index: 0 }];
+    win.showInputBox = async () => 'Partial commit';
+    const { ctrl } = makeController(repo);
+    await ctrl.handle({ type: 'commitHunks', path: 'a.ts' } as Incoming);
+    expect(repo.git.applyCached).toHaveBeenCalled();
+    expect(repo.git.commitIndex).toHaveBeenCalledWith('Partial commit');
+    expect(repo.refresh).toHaveBeenCalled();
+  });
+
+  it('commits nothing when the hunk pick is cancelled', async () => {
+    const repo = makeHunksRepo();
+    const { ctrl } = makeController(repo);
+    await ctrl.handle({ type: 'commitHunks', path: 'a.ts' } as Incoming);
+    expect(repo.git.applyCached).not.toHaveBeenCalled();
+    expect(repo.git.commitIndex).not.toHaveBeenCalled();
+  });
+});
