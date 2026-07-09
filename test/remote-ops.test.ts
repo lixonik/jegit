@@ -17,6 +17,7 @@ function makeRepo(gitOverrides: Record<string, unknown> = {}): Repository {
       fetch: vi.fn(async () => undefined),
       aheadBehind: vi.fn(async () => ({ ahead: 0, behind: 2 })),
       pull: vi.fn(async () => undefined),
+      remote: { list: vi.fn(async () => [{ name: 'origin', url: 'https://h/r.git' }]) },
       ...gitOverrides,
     },
     refresh: vi.fn(async () => undefined),
@@ -43,7 +44,23 @@ describe('pushFlow', () => {
     const repo = makeRepo({ hasUpstream: vi.fn(async () => false) });
     win.showWarningMessage = async () => 'Push';
     await pushFlow(repo);
-    expect(repo.git.pushSetUpstream).toHaveBeenCalled();
+    expect(repo.git.pushSetUpstream).toHaveBeenCalledWith('origin');
+  });
+
+  it('lets the user choose the remote when several exist', async () => {
+    const repo = makeRepo({
+      hasUpstream: vi.fn(async () => false),
+      remote: {
+        list: vi.fn(async () => [
+          { name: 'origin', url: 'https://h/r.git' },
+          { name: 'fork', url: 'https://h/fork.git' },
+        ]),
+      },
+    });
+    win.showQuickPick = async () => ({ label: 'fork', description: 'https://h/fork.git' });
+    win.showWarningMessage = async () => 'Push';
+    await pushFlow(repo);
+    expect(repo.git.pushSetUpstream).toHaveBeenCalledWith('fork');
   });
 
   it('does not push when there are no outgoing commits', async () => {

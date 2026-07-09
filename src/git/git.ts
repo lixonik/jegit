@@ -437,9 +437,9 @@ export class Git {
   async pull(rebase: boolean): Promise<void> {
     await this.raw(['pull', rebase ? '--rebase' : '--no-rebase']);
   }
-  async pushSetUpstream(): Promise<void> {
+  async pushSetUpstream(remote = 'origin'): Promise<void> {
     const b = await this.currentBranch();
-    await this.raw(['push', '--set-upstream', 'origin', b]);
+    await this.raw(['push', '--set-upstream', remote, b]);
   }
   async aheadBehind(): Promise<{ ahead: number; behind: number } | null> {
     try {

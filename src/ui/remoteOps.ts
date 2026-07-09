@@ -5,14 +5,24 @@ import { Repository } from '../model/repository';
 export async function pushFlow(repo: Repository): Promise<void> {
   try {
     if (!(await repo.git.hasUpstream())) {
+      const remotes = await repo.git.remote.list();
+      let remote = 'origin';
+      if (remotes.length > 1) {
+        const pick = await vscode.window.showQuickPick(
+          remotes.map((r) => ({ label: r.name, description: r.url })),
+          { placeHolder: 'Push to remote' },
+        );
+        if (!pick) return;
+        remote = pick.label;
+      }
       const ok = await vscode.window.showWarningMessage(
-        `Branch ${repo.branch} has no upstream. Push and set origin/${repo.branch}?`,
+        `Branch ${repo.branch} has no upstream. Push and set ${remote}/${repo.branch}?`,
         { modal: true },
         'Push',
       );
       if (ok !== 'Push') return;
-      await repo.git.pushSetUpstream();
-      vscode.window.showInformationMessage(`JeGit: pushed and set upstream origin/${repo.branch}.`);
+      await repo.git.pushSetUpstream(remote);
+      vscode.window.showInformationMessage(`JeGit: pushed and set upstream ${remote}/${repo.branch}.`);
     } else {
       const out = await repo.git.outgoingSubjects();
       if (!out.length) {
