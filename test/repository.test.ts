@@ -88,4 +88,33 @@ describe('Repository', () => {
     const repo = new Repository(makeGit(), makeStore(), makeShelf());
     expect(repo.relPathOf({ fsPath: 'D:/repo/src/a.ts' } as never)).toBe('src/a.ts');
   });
+
+  it('coalesces a burst of watcher events into a single refresh', async () => {
+    vi.useFakeTimers();
+    try {
+      const git = makeGit();
+      const repo = new Repository(git, makeStore(), makeShelf());
+      repo.scheduleRefresh();
+      repo.scheduleRefresh();
+      repo.scheduleRefresh();
+      await vi.advanceTimersByTimeAsync(400);
+      expect(git.status).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('cancels a pending refresh on dispose', async () => {
+    vi.useFakeTimers();
+    try {
+      const git = makeGit();
+      const repo = new Repository(git, makeStore(), makeShelf());
+      repo.scheduleRefresh();
+      repo.dispose();
+      await vi.advanceTimersByTimeAsync(400);
+      expect(git.status).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
