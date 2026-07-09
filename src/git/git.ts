@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { execGit } from './runner';
 import { GitStash } from './stash';
+import { GitWorktrees } from './worktrees';
 import { parseNameStatusZ } from '../util/parse';
 import { parseRecentBranches } from '../util/recentBranches';
 import {
@@ -35,6 +36,7 @@ export class Git {
   commandLogger?: (line: string) => void;
 
   readonly stash = new GitStash((args) => this.raw(args));
+  readonly worktree = new GitWorktrees((args) => this.raw(args));
 
   async raw(args: string[]): Promise<string> {
     try {
@@ -344,26 +346,6 @@ export class Git {
     } catch {
       return [];
     }
-  }
-
-  async worktrees(): Promise<Worktree[]> {
-    try {
-      return parseWorktrees(await this.raw(['worktree', 'list', '--porcelain']));
-    } catch {
-      return [];
-    }
-  }
-  async worktreeAdd(dir: string, ref: string): Promise<void> {
-    await this.raw(['worktree', 'add', dir, ref]);
-  }
-  async worktreeAddNewBranch(dir: string, newBranch: string, base: string): Promise<void> {
-    await this.raw(['worktree', 'add', '-b', newBranch, dir, base]);
-  }
-  async worktreeRemove(dir: string): Promise<void> {
-    await this.raw(['worktree', 'remove', dir]);
-  }
-  async worktreePrune(): Promise<void> {
-    await this.raw(['worktree', 'prune']);
   }
 
   /** All file paths present at a given revision (for "Browse Repository at Revision"). */

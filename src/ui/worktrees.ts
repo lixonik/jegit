@@ -4,7 +4,7 @@ import { Repository } from '../model/repository';
 
 /** JetBrains-style Worktrees popup: list worktrees, add, open, remove, prune. */
 export async function manageWorktrees(repo: Repository): Promise<void> {
-  const trees = await repo.git.worktrees();
+  const trees = await repo.git.worktree.list();
   type Item = vscode.QuickPickItem & { action?: string; dir?: string };
   const items: Item[] = [
     { label: '$(add) New Worktree...', action: 'add' },
@@ -25,7 +25,7 @@ export async function manageWorktrees(repo: Repository): Promise<void> {
   if (pick.action === 'add') return addWorktree(repo);
   if (pick.action === 'prune') {
     try {
-      await repo.git.worktreePrune();
+      await repo.git.worktree.prune();
       vscode.window.showInformationMessage('JeGit: pruned stale worktrees.');
     } catch (err) {
       vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
@@ -52,7 +52,7 @@ async function worktreeActions(repo: Repository, dir: string): Promise<void> {
   const ok = await vscode.window.showWarningMessage(`Remove worktree at ${dir}?`, { modal: true }, 'Remove');
   if (ok !== 'Remove') return;
   try {
-    await repo.git.worktreeRemove(dir);
+    await repo.git.worktree.remove(dir);
     vscode.window.showInformationMessage('JeGit: worktree removed.');
   } catch (err) {
     vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)} (use prune if it is already gone)`);
@@ -75,11 +75,11 @@ async function addWorktree(repo: Repository): Promise<void> {
       if (!name || !name.trim()) return;
       const dir = await promptDir(base, `${repoName}-${name.trim().replace(/[/\\]/g, '-')}`);
       if (!dir) return;
-      await repo.git.worktreeAddNewBranch(dir, name.trim(), current);
+      await repo.git.worktree.addNewBranch(dir, name.trim(), current);
     } else {
       const dir = await promptDir(base, `${repoName}-${(choice.branch || '').replace(/[/\\]/g, '-')}`);
       if (!dir) return;
-      await repo.git.worktreeAdd(dir, choice.branch as string);
+      await repo.git.worktree.add(dir, choice.branch as string);
     }
     vscode.window.showInformationMessage('JeGit: worktree created.');
   } catch (err) {
