@@ -7,11 +7,31 @@ export const window: Record<string, (...args: unknown[]) => unknown> = {
   showInformationMessage: async () => undefined,
   showErrorMessage: async () => undefined,
   createStatusBarItem: () => ({ text: '', show: () => undefined, dispose: () => undefined }),
+  createTextEditorDecorationType: () => ({ dispose: () => undefined }),
 };
 
 export const StatusBarAlignment = { Left: 1, Right: 2 };
 
 export const ViewColumn = { Active: -1, One: 1, Two: 2 };
+
+export class ThemeColor {
+  constructor(readonly id: string) {}
+}
+
+export class MarkdownString {
+  isTrusted = false;
+  supportThemeIcons = false;
+  constructor(public value = '') {}
+}
+
+export class Range {
+  constructor(
+    readonly startLine: number,
+    readonly startCharacter: number,
+    readonly endLine: number,
+    readonly endCharacter: number,
+  ) {}
+}
 
 export const commands: Record<string, (...args: unknown[]) => Promise<unknown>> = {
   executeCommand: async () => undefined,
@@ -28,6 +48,7 @@ export const Disposable = {
 
 export const workspace = {
   getConfiguration: (_section?: string) => ({ get: <T>(_key: string, fallback: T): T => fallback }),
+  onDidChangeTextDocument: (_listener: (e: unknown) => void) => ({ dispose: () => undefined }),
   registerTextDocumentContentProvider: (_scheme: string, _provider: unknown) => ({ dispose: () => undefined }),
   createFileSystemWatcher: () => ({
     onDidChange: () => ({ dispose: () => undefined }),
