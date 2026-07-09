@@ -14,6 +14,8 @@ export const StatusBarAlignment = { Left: 1, Right: 2 };
 
 export const ViewColumn = { Active: -1, One: 1, Two: 2 };
 
+export const ProgressLocation = { Notification: 15, Window: 10, SourceControl: 1 };
+
 export class ThemeColor {
   constructor(readonly id: string) {}
 }
