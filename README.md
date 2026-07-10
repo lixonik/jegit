@@ -73,6 +73,15 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
   **Apply Patch** (from a file or the clipboard), **Stash / Unstash** (with a
   changed-files preview), and **Copy Path**.
 
+## Settings
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `jegit.log.maxCount` | `400` | Maximum number of commits loaded in the Log tab. |
+| `jegit.panel.autoReveal` | `true` | Reveal the JeGit panel automatically when a git repository opens. |
+| `jegit.stagingArea` | `false` | Use a Git staging area (Staged / Unstaged groups) instead of changelists. |
+| `jegit.protectedBranches` | `["main", "master"]` | Branch names that get a stronger warning before a force push. |
+
 ## Development
 
 ```bash
