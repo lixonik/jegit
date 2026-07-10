@@ -864,6 +864,22 @@ describe('vcs.js webview smoke', () => {
     expect(call.hash).toHaveLength(40);
   });
 
+  it('jumps over commits with PageDown and PageUp', () => {
+    const logTab = document.querySelector('.tab[data-tab="log"]') as HTMLElement;
+    logTab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const rows = () => [...document.querySelectorAll('.log-row')] as HTMLElement[];
+    rows()[0].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const firstHash = rows()[0].dataset.hash!;
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'PageDown', bubbles: true }));
+    const selectedAfterDown = document.querySelector('.log-row.selected') as HTMLElement;
+    expect(selectedAfterDown.dataset.hash).toBe(rows().at(-1)!.dataset.hash);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'PageUp', bubbles: true }));
+    const selectedAfterUp = document.querySelector('.log-row.selected') as HTMLElement;
+    expect(selectedAfterUp.dataset.hash).toBe(firstHash);
+  });
+
   it('reorders the tabs with drag and drop', () => {
     const bar = document.querySelector('.tabbar')!;
     const order = () => [...bar.querySelectorAll('.tab')].map((t) => t.getAttribute('data-tab'));
