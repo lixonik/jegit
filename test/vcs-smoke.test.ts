@@ -863,4 +863,30 @@ describe('vcs.js webview smoke', () => {
     const call = posted.filter((p) => p.type === 'browseAt').at(-1) as { hash: string };
     expect(call.hash).toHaveLength(40);
   });
+
+  it('opens a details file on the remote from its context menu', () => {
+    const row = document.querySelector('.log-row') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const hash = row.dataset.hash!;
+    sendToWebview({
+      type: 'commitDetailsData',
+      hash,
+      files: [{ status: 'M', path: 'src/a.ts' }],
+      body: 'msg',
+      committer: { name: 'Dev', date: '2026-07-01' },
+      branches: [],
+      tags: [],
+    });
+    const fileRow = [...document.querySelectorAll('#log-details *')].find(
+      (el) => el.textContent?.trim() === 'a.ts',
+    ) as HTMLElement;
+    expect(fileRow).toBeDefined();
+    fileRow.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const item = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Open on Remote at This Revision',
+    ) as HTMLElement;
+    expect(item).toBeDefined();
+    item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'openRevFileRemote', hash, path: 'src/a.ts' });
+  });
 });

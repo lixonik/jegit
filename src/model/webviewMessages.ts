@@ -57,6 +57,7 @@ export type Incoming =
   | { type: 'shelfFileDiff'; id: string; path: string }
   | { type: 'unshelveFile'; id: string; path: string }
   | { type: 'browseAt'; hash: string }
+  | { type: 'openRevFileRemote'; hash: string; path: string }
   | { type: 'openFile'; path: string }
   | { type: 'mergeResolve'; path: string }
   | { type: 'markResolved'; paths: string[] }

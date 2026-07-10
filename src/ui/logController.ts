@@ -6,7 +6,7 @@ import { performBranchAction } from './branches';
 import { browseFilesAt } from './browseRevision';
 import { showRebaseDialog } from './rebaseDialog';
 import { REV_SCHEME } from './quickDiff';
-import { toWebUrl, commitWebUrl } from '../util/remoteUrl';
+import { toWebUrl, commitWebUrl, fileWebUrl } from '../util/remoteUrl';
 import { isDefined, isEmpty, isNil, notEmpty } from '../util/guards';
 import type { PostMessage } from './shelfController';
 
@@ -80,6 +80,9 @@ export class LogController {
         return true;
       case 'openRevLocalDiff':
         await this.openRevLocalDiff(m.hash, m.path);
+        return true;
+      case 'openRevFileRemote':
+        await this.openRevFileRemote(m.hash, m.path);
         return true;
       case 'copyHash':
         await vscode.env.clipboard.writeText(m.hash);
@@ -272,6 +275,17 @@ export class LogController {
       return;
     }
     await vscode.env.openExternal(vscode.Uri.parse(commitWebUrl(web, hash)));
+  }
+
+  private async openRevFileRemote(hash: string, rel: string): Promise<void> {
+    const remotes = await this.repo.git.remote.list();
+    const origin = remotes.find((r) => r.name === 'origin') ?? remotes[0];
+    const web = isDefined(origin) ? toWebUrl(origin.url) : '';
+    if (isEmpty(web)) {
+      vscode.window.showInformationMessage('JeGit: could not determine the remote web URL.');
+      return;
+    }
+    await vscode.env.openExternal(vscode.Uri.parse(fileWebUrl(web, hash, rel)));
   }
 
   private async newBranchAt(hash: string): Promise<void> {

@@ -256,6 +256,28 @@ describe('LogController', () => {
     expect(title).toContain('Local');
   });
 
+  it('opens a revision file on the remote web host', async () => {
+    const open = vi.fn(async () => true);
+    (vscode.env as unknown as Record<string, unknown>).openExternal = open;
+    const { ctrl } = makeController(
+      makeGit({ remote: { list: vi.fn(async () => [{ name: 'origin', url: 'https://github.com/u/r.git' }]) } }),
+    );
+    await ctrl.handle({ type: 'openRevFileRemote', hash: 'a'.repeat(40), path: 'src/a.ts' } as Incoming);
+    const uri = open.mock.calls[0][0] as { value?: string };
+    expect(String(uri.value ?? uri)).toContain(`/blob/${'a'.repeat(40)}/src/a.ts`);
+  });
+
+  it('reports when the revision file has no remote web url', async () => {
+    const open = vi.fn(async () => true);
+    (vscode.env as unknown as Record<string, unknown>).openExternal = open;
+    const info = vi.fn(async () => undefined);
+    win.showInformationMessage = info;
+    const { ctrl } = makeController(makeGit({ remote: { list: vi.fn(async () => []) } }));
+    await ctrl.handle({ type: 'openRevFileRemote', hash: 'a'.repeat(40), path: 'src/a.ts' } as Incoming);
+    expect(info).toHaveBeenCalled();
+    expect(open).not.toHaveBeenCalled();
+  });
+
   it('refreshes the tree and the log after a log operation', async () => {
     const { ctrl, git, repo, posts } = makeController();
     await ctrl.handle({ type: 'cherryPick', hash: 'abc' } as Incoming);
