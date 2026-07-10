@@ -1012,6 +1012,23 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'logPathFilter' });
   });
 
+  it('recalls a commit message and fills the box from the reply', () => {
+    (document.getElementById('msg-history') as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'recallMessage' });
+
+    sendToWebview({ type: 'setCommitMessage', text: 'Reused message' });
+    const msg = document.getElementById('message') as HTMLTextAreaElement;
+    expect(msg.value).toBe('Reused message');
+    sendToWebview({ type: 'setCommitMessage', text: '' });
+  });
+
+  it('requests a refresh and a new changelist from the toolbar', () => {
+    (document.getElementById('tb-refresh') as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'refresh' });
+    (document.getElementById('tb-new') as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'newChangelist' });
+  });
+
   it('posts hunks, move and patch actions from the file context menu', () => {
     sendToWebview({
       type: 'state',
