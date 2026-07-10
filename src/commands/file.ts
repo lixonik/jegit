@@ -12,6 +12,7 @@ export function registerFileCommands(context: vscode.ExtensionContext, repo: Rep
   context.subscriptions.push(
     vscode.commands.registerCommand('jegit.toggleBlame', () => blame.toggle()),
     vscode.commands.registerCommand('jegit.fileHistory', () => showActiveFileHistory(repo)),
+    vscode.commands.registerCommand('jegit.selectionHistory', () => showSelectionHistory(repo)),
     vscode.commands.registerCommand('jegit.openFileOnRemote', () => openActiveFileOnRemote(repo)),
     vscode.commands.registerCommand('jegit.compareFileWithBranch', () => compareActiveFileWithBranch(repo)),
   );
@@ -30,6 +31,27 @@ async function showActiveFileHistory(repo: Repository): Promise<void> {
   const uri = activeFileUri('JeGit: open a file to see its history.');
   if (isNil(uri)) return;
   await showFileHistory(repo, repo.relPathOf(uri));
+}
+
+async function showSelectionHistory(repo: Repository): Promise<void> {
+  const uri = activeFileUri('JeGit: open a file to see the history of a selection.');
+  const editor = vscode.window.activeTextEditor;
+  if (isNil(uri) || isNil(editor)) return;
+  const start = editor.selection.start.line + 1;
+  const end = Math.max(editor.selection.end.line + 1, start);
+  let text = '';
+  try {
+    text = await repo.git.logForLines(repo.relPathOf(uri), start, end);
+  } catch (err) {
+    vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
+    return;
+  }
+  if (isEmpty(text.trim())) {
+    vscode.window.showInformationMessage('JeGit: no history for the selected lines.');
+    return;
+  }
+  const doc = await vscode.workspace.openTextDocument({ content: text, language: 'diff' });
+  await vscode.window.showTextDocument(doc, { preview: true });
 }
 
 async function openActiveFileOnRemote(repo: Repository): Promise<void> {

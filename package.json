@@ -125,6 +125,12 @@
         "icon": "$(history)"
       },
       {
+        "command": "jegit.selectionHistory",
+        "title": "Show History for Selection",
+        "category": "JeGit",
+        "icon": "$(list-selection)"
+      },
+      {
         "command": "jegit.compareFileWithBranch",
         "title": "Compare File with Branch...",
         "category": "JeGit",

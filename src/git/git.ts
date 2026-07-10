@@ -504,6 +504,10 @@ export class Git {
     }
   }
 
+  async logForLines(relPath: string, start: number, end: number): Promise<string> {
+    return this.raw(['log', '-L', `${start},${end}:${relPath}`]);
+  }
+
 
   async diffRefs(a: string, b: string): Promise<{ status: string; path: string }[]> {
     let out = '';

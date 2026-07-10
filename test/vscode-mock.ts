@@ -8,6 +8,7 @@ export const window: Record<string, (...args: unknown[]) => unknown> = {
   showErrorMessage: async () => undefined,
   createStatusBarItem: () => ({ text: '', show: () => undefined, dispose: () => undefined }),
   createTextEditorDecorationType: () => ({ dispose: () => undefined }),
+  showTextDocument: async () => undefined,
 };
 
 export const StatusBarAlignment = { Left: 1, Right: 2 };
@@ -50,6 +51,7 @@ export const Disposable = {
 
 export const workspace = {
   getConfiguration: (_section?: string) => ({ get: <T>(_key: string, fallback: T): T => fallback }),
+  openTextDocument: async (options: unknown) => options,
   onDidChangeTextDocument: (_listener: (e: unknown) => void) => ({ dispose: () => undefined }),
   registerTextDocumentContentProvider: (_scheme: string, _provider: unknown) => ({ dispose: () => undefined }),
   createFileSystemWatcher: () => ({

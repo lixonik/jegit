@@ -30,8 +30,8 @@ function makeRepo(overrides: Record<string, unknown> = {}): Repository {
   } as unknown as Repository;
 }
 
-function setActiveEditor(scheme = 'file') {
-  win.activeTextEditor = { document: { uri: { scheme, fsPath: 'D:/repo/src/a.ts' } } };
+function setActiveEditor(scheme = 'file', selection = { start: { line: 0 }, end: { line: 0 } }) {
+  win.activeTextEditor = { document: { uri: { scheme, fsPath: 'D:/repo/src/a.ts' } }, selection };
 }
 
 describe('file commands', () => {
@@ -71,6 +71,32 @@ describe('file commands', () => {
     await handlers['jegit.openFileOnRemote']();
     expect(info).toHaveBeenCalled();
     expect(env.openExternal).not.toHaveBeenCalled();
+  });
+
+  it('shows the selection history as a diff document', async () => {
+    setActiveEditor('file', { start: { line: 4 }, end: { line: 9 } });
+    const shown: unknown[] = [];
+    win.showTextDocument = async (doc: unknown) => {
+      shown.push(doc);
+      return undefined;
+    };
+    const logForLines = vi.fn(async () => 'commit abc\n@@ -5,6 +5,6 @@');
+    const handlers = register(makeRepo({ logForLines }));
+    await handlers['jegit.selectionHistory']();
+    expect(logForLines).toHaveBeenCalledWith('src/a.ts', 5, 10);
+    expect(shown[0]).toEqual({ content: 'commit abc\n@@ -5,6 +5,6 @@', language: 'diff' });
+  });
+
+  it('reports when the selected lines have no history', async () => {
+    setActiveEditor();
+    const info = vi.fn(async () => undefined);
+    win.showInformationMessage = info;
+    const shown = vi.fn(async () => undefined);
+    win.showTextDocument = shown;
+    const handlers = register(makeRepo({ logForLines: vi.fn(async () => '  \n') }));
+    await handlers['jegit.selectionHistory']();
+    expect(info).toHaveBeenCalled();
+    expect(shown).not.toHaveBeenCalled();
   });
 
   it('compares the active file with a picked branch via vscode.diff', async () => {
