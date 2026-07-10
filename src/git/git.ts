@@ -98,12 +98,6 @@ export class Git {
     if (paths.length === 0) return;
     await this.raw(['reset', '-q', 'HEAD', '--', ...paths]);
   }
-  async stageAll(): Promise<void> {
-    await this.raw(['add', '-A']);
-  }
-  async unstageAll(): Promise<void> {
-    await this.raw(['reset', '-q', 'HEAD']);
-  }
 
   /**
    * Commit exactly the given paths. Passing the pathspec to `commit` performs a
