@@ -939,6 +939,28 @@ describe('vcs.js webview smoke', () => {
     expect(call.hash).toHaveLength(40);
   });
 
+  it('stages and unstages a whole group from its header button', () => {
+    sendToWebview({
+      type: 'state',
+      payload: { branch: 'main', total: 3, changelists: [] },
+      operation: null,
+      staging: {
+        staged: [{ path: 'src/s.ts', letter: 'M' }],
+        unstaged: [
+          { path: 'src/u.ts', letter: 'M' },
+          { path: 'src/v.ts', letter: 'M' },
+        ],
+        untracked: [],
+      },
+    });
+    const buttons = [...document.querySelectorAll('#tree .group-all')] as HTMLElement[];
+    expect(buttons.map((b) => b.textContent)).toEqual(['Unstage All', 'Stage All']);
+    buttons[1].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'stage', paths: ['src/u.ts', 'src/v.ts'] });
+    buttons[0].dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'unstage', paths: ['src/s.ts'] });
+  });
+
   it('shelves a file silently from its context menu', () => {
     sendToWebview({
       type: 'state',

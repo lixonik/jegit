@@ -313,6 +313,16 @@
       count.className = 'cl-count';
       count.textContent = files.length ? files.length + ' file' + (files.length > 1 ? 's' : '') : 'empty';
       node.append(icon, name, count);
+      if (files.length && (kind === 'staged' || kind === 'unstaged')) {
+        const all = document.createElement('button');
+        all.className = 'tool group-all';
+        all.textContent = kind === 'staged' ? 'Unstage All' : 'Stage All';
+        all.addEventListener('click', (e) => {
+          e.stopPropagation();
+          vscode.postMessage({ type: kind === 'staged' ? 'unstage' : 'stage', paths: files.map((f) => f.path) });
+        });
+        node.appendChild(all);
+      }
       tree.appendChild(node);
       for (const f of files.slice().sort((a, b) => a.path.localeCompare(b.path))) tree.appendChild(stagingRow(f, kind));
     };
