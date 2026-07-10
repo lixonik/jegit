@@ -17,6 +17,9 @@
 - Show History for Selection: `git log -L` over the selected lines, shown as a diff document.
 - Shelf: per-file Show Diff (double click) and Unshelve This File (shelf kept); Show Patch for the whole shelf; Shelve Silently under the active changelist name.
 - Staging mode: Stage All / Unstage All buttons on the group headers.
+- Rollback and shelf deletion list the affected files in the confirmation.
+- Log: Escape clears the search box.
+- Update remembers the last picked pull mode for the session.
 - Log: Browse Repository at This Revision in the commit context menu.
 - File History: Compare with Local alongside Show Diff and Restore.
 - Local Changes: Show History and Copy Path in the file context menu.

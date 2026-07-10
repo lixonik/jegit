@@ -58,10 +58,11 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
   warning) and the panel header open the **Branches popup**: Checkout, New,
   Merge, Rebase, Rename, Delete, Compare, **Show Diff with Working Tree**,
   **Set Upstream**, **Push a branch** to a chosen remote, **Delete on Remote**.
-- **Fetch**, **Fetch All and Prune**, **Update** (fetch + pull), **Push** (with
-  an outgoing-commit preview), **Force Push** (`--force-with-lease`, with a
-  stronger warning on branches from `jegit.protectedBranches`), **Push Tags**,
-  and **Manage Remotes** (add / rename / change URL / remove).
+- **Fetch**, **Fetch All and Prune**, **Update** (fetch + pull, remembering the
+  last rebase/merge choice), **Push** (with an outgoing-commit preview),
+  **Force Push** (`--force-with-lease`, with a stronger warning on branches
+  from `jegit.protectedBranches`), **Push Tags**, and **Manage Remotes**
+  (add / rename / change URL / remove).
 
 ### Editor
 - **Annotate with Git Blame** (colored by commit age), **Show File History**
