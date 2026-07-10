@@ -25,7 +25,7 @@
 - File History: Compare with Local alongside Show Diff and Restore.
 - Local Changes: Show History and Copy Path in the file context menu.
 - Branches: push a local branch to a chosen remote; delete a remote branch after confirmation (both also in the Log branch panel menu).
-- Console: a clear button.
+- Console: a filter box and a clear button.
 - Fetch All and Prune Remote Branches command.
 - Log: the search, author and date filters survive a webview reload.
 - Status bar: the branch widget announces an in-progress merge/rebase/cherry-pick/revert.
