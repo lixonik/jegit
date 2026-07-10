@@ -46,6 +46,8 @@ export async function pushFlow(repo: Repository): Promise<void> {
   }
 }
 
+let lastUpdateWasRebase = true;
+
 /** Fetch, then pull (rebase or merge) when the branch is behind its upstream. */
 export async function updateFlow(repo: Repository): Promise<void> {
   try {
@@ -56,14 +58,16 @@ export async function updateFlow(repo: Repository): Promise<void> {
       return;
     }
     type Item = vscode.QuickPickItem & { rebase: boolean };
-    const pick = await vscode.window.showQuickPick<Item>(
-      [
-        { label: 'Rebase onto incoming', description: 'pull --rebase', rebase: true },
-        { label: 'Merge incoming', description: 'pull --no-rebase', rebase: false },
-      ],
-      { placeHolder: `Update: ${ab.behind} incoming commit(s)` },
-    );
+    const options: Item[] = [
+      { label: 'Rebase onto incoming', description: 'pull --rebase', rebase: true },
+      { label: 'Merge incoming', description: 'pull --no-rebase', rebase: false },
+    ];
+    if (!lastUpdateWasRebase) options.reverse();
+    const pick = await vscode.window.showQuickPick<Item>(options, {
+      placeHolder: `Update: ${ab.behind} incoming commit(s)`,
+    });
     if (!pick) return;
+    lastUpdateWasRebase = pick.rebase;
     await repo.git.pull(pick.rebase);
     vscode.window.showInformationMessage(`JeGit: updated (${ab.behind} incoming commit(s)).`);
   } catch (err) {

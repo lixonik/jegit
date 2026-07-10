@@ -112,6 +112,25 @@ describe('updateFlow', () => {
     expect(repo.refresh).toHaveBeenCalled();
   });
 
+  it('offers the previously picked mode first', async () => {
+    const orders: boolean[][] = [];
+    const pickBy = (rebase: boolean) => async (items: unknown) => {
+      const typed = items as { rebase: boolean }[];
+      orders.push(typed.map((i) => i.rebase));
+      return typed.find((i) => i.rebase === rebase);
+    };
+    const repo = makeRepo();
+    win.showQuickPick = pickBy(false) as AnyFn;
+    await updateFlow(repo);
+    await updateFlow(repo);
+    expect(orders[1][0]).toBe(false);
+
+    win.showQuickPick = pickBy(true) as AnyFn;
+    await updateFlow(repo);
+    await updateFlow(repo);
+    expect(orders[3][0]).toBe(true);
+  });
+
   it('reports a fetch failure and still refreshes', async () => {
     const err = vi.fn(async () => undefined);
     win.showErrorMessage = err;
