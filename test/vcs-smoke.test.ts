@@ -1128,5 +1128,13 @@ describe('vcs.js webview smoke', () => {
     expect(item).toBeDefined();
     item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(posted).toContainEqual({ type: 'openRevFileRemote', hash, path: 'src/a.ts' });
+
+    fileRow.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const reveal = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Reveal in File Explorer',
+    ) as HTMLElement;
+    expect(reveal).toBeDefined();
+    reveal.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'revealFile', path: 'src/a.ts' });
   });
 });
