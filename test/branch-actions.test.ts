@@ -202,4 +202,47 @@ describe('showBranches', () => {
     await showBranches(repo);
     expect(exec).toHaveBeenCalledWith('jegit.cleanupBranches');
   });
+
+  function makeTagRepo() {
+    return makeRepo({
+      branches: vi.fn(async () => ({ current: 'main', locals: ['main'], remotes: [] })),
+      recentBranches: vi.fn(async () => []),
+      tag: { list: vi.fn(async () => ['v1.0']), delete: vi.fn(async () => undefined) },
+    });
+  }
+
+  function pickTagThen(action: string) {
+    const picks = [
+      async (items: unknown) => (items as { tag?: string }[]).find((i) => i.tag === 'v1.0'),
+      async (items: unknown) => (items as { a?: string }[]).find((i) => i.a === action),
+    ];
+    win.showQuickPick = ((items: unknown) => picks.shift()!(items)) as AnyFn;
+  }
+
+  it('checks out a picked tag detached', async () => {
+    const repo = makeTagRepo();
+    pickTagThen('checkout');
+    await showBranches(repo);
+    expect(repo.git.checkout).toHaveBeenCalledWith('v1.0');
+  });
+
+  it('creates a branch from a picked tag', async () => {
+    const repo = makeTagRepo();
+    pickTagThen('newBranch');
+    win.showInputBox = async () => 'release/1.0';
+    await showBranches(repo);
+    expect(repo.git.checkoutNew).toHaveBeenCalledWith('release/1.0', 'v1.0');
+  });
+
+  it('deletes a picked tag only after confirmation', async () => {
+    const repo = makeTagRepo();
+    pickTagThen('delete');
+    await showBranches(repo);
+    expect(repo.git.tag.delete).not.toHaveBeenCalled();
+
+    pickTagThen('delete');
+    win.showWarningMessage = async () => 'Delete';
+    await showBranches(repo);
+    expect(repo.git.tag.delete).toHaveBeenCalledWith('v1.0');
+  });
 });
