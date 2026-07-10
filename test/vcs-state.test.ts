@@ -23,6 +23,7 @@ describe('vcs.js ui state persistence', () => {
         tab: 'log',
         logFilters: { text: 'fix', user: 'Dev', date: '7' },
         clCollapsed: ['default'],
+        branchesW: 300,
       }),
       setState: (s: Record<string, unknown>) => savedStates.push(s),
     });
@@ -108,6 +109,19 @@ describe('vcs.js ui state persistence', () => {
     expect([...tree.querySelectorAll('.fname')].some((el) => el.textContent === 'a.ts')).toBe(true);
     const last = savedStates.at(-1) as { clCollapsed?: string[] };
     expect(last.clCollapsed).toEqual([]);
+  });
+
+  it('restores the branches pane width and persists a splitter drag', () => {
+    const pane = document.getElementById('log-branches') as HTMLElement;
+    expect(pane.style.width).toBe('300px');
+
+    const splitter = document.getElementById('split-branches') as HTMLElement;
+    splitter.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, clientX: 0 }));
+    document.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: 240 }));
+    document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+    expect(pane.style.width).toBe('240px');
+    const last = savedStates.at(-1) as { branchesW?: number };
+    expect(last.branchesW).toBe(240);
   });
 
   it('persists the log filters as the user edits them', () => {
