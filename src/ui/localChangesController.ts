@@ -290,9 +290,11 @@ export class LocalChangesController {
 
   private async rollback(items: { path: string; untracked: boolean }[]): Promise<void> {
     if (isNil(items) || isEmpty(items)) return;
+    const listed = items.slice(0, 10).map((i) => i.path);
+    const detail = listed.join('\n') + (items.length > listed.length ? `\n... and ${items.length - listed.length} more` : '');
     const confirm = await vscode.window.showWarningMessage(
       `Rollback ${items.length} file(s)? Local changes will be lost.`,
-      { modal: true },
+      { modal: true, detail },
       'Rollback',
     );
     if (confirm !== 'Rollback') return;

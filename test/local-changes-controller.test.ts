@@ -241,6 +241,19 @@ describe('LocalChangesController', () => {
     expect(repo.refresh).toHaveBeenCalled();
   });
 
+  it('lists the affected files in the rollback confirmation', async () => {
+    const warn = vi.fn(async () => undefined);
+    win.showWarningMessage = warn;
+    const { ctrl } = makeController();
+    const items = Array.from({ length: 12 }, (_, i) => ({ path: `src/f${i}.ts`, untracked: false }));
+    await ctrl.handle({ type: 'rollback', items } as Incoming);
+    const [, options] = warn.mock.calls[0] as [string, { detail: string }];
+    expect(options.detail).toContain('src/f0.ts');
+    expect(options.detail).toContain('src/f9.ts');
+    expect(options.detail).toContain('... and 2 more');
+    expect(options.detail).not.toContain('src/f10.ts');
+  });
+
   it('skips staging when nothing is selected but still refreshes', async () => {
     const { ctrl, repo } = makeController();
     await ctrl.handle({ type: 'stage', paths: [] } as Incoming);
