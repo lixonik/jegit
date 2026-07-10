@@ -633,6 +633,16 @@ describe('vcs.js webview smoke', () => {
     expect(picks.map((p) => p.hash)).toEqual(['g'.repeat(40), 'h'.repeat(40)]);
   });
 
+  it('closes the context menu with Escape', () => {
+    const row = document.querySelector('.log-row') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const ctx = document.getElementById('ctxmenu')!;
+    expect(ctx.style.display).toBe('block');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(ctx.style.display).toBe('none');
+  });
+
   it('opens the revision diff when a details file is clicked', () => {
     const fileRow = [...document.querySelectorAll('#log-details *')].find(
       (el) => el.textContent?.trim() === 'a.ts',

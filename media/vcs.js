@@ -686,6 +686,9 @@
   function hideCtx() {
     ctx.style.display = 'none';
   }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideCtx();
+  });
   document.addEventListener('click', hideCtx);
   window.addEventListener('blur', hideCtx);
 
