@@ -36,6 +36,10 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 ### Conflicts
 - A **three-pane merge resolver** (Yours | editable Result | Theirs) with
   per-conflict and whole-file accept, opened from a conflicted file.
+- After applying, the resolver **offers the next conflicted file** until the
+  queue is empty.
+- **Resolve Conflicts** command: pick a file, then **Merge...**, **Accept
+  Yours**, or **Accept Theirs**; the list reopens until every conflict is done.
 
 ### Shelf and Console
 - Shelve / Unshelve patches that survive branch switches.
@@ -51,7 +55,8 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 
 ### Editor
 - **Annotate with Git Blame** (colored by commit age), **Show File History**
-  (with restore to a revision), **Apply Patch** (from a file or the clipboard),
+  (with restore to a revision), **Show History for Selection** (`git log -L`
+  for the selected lines), **Apply Patch** (from a file or the clipboard),
   **Stash / Unstash** (with a changed-files preview), and **Copy Path**.
 
 ## Development
