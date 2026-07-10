@@ -1012,6 +1012,20 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'logPathFilter' });
   });
 
+  it('shows the filtered commit count while a filter is active', () => {
+    const search = document.getElementById('log-search') as HTMLInputElement;
+    const count = document.getElementById('log-count')!;
+    expect(count.textContent).toBe('');
+
+    search.value = 'filter';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(count.textContent).toMatch(/^\d+ \/ \d+$/);
+
+    search.value = '';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(count.textContent).toBe('');
+  });
+
   it('clears the log search with Escape', () => {
     const search = document.getElementById('log-search') as HTMLInputElement;
     search.value = 'filter';

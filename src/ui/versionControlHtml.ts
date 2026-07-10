@@ -75,6 +75,7 @@ export function renderVersionControlHtml(webview: vscode.Webview, extensionUri: 
       </select>
       <button class="log-filter" id="log-path" title="Filter by path"><i class="codicon codicon-filter"></i> Paths</button>
       <input id="log-search" class="log-search" placeholder="Search..." />
+      <span class="cl-count" id="log-count"></span>
       <span class="sep"></span>
       <button class="tool" id="log-cherrypick" title="Cherry-Pick the selected commit onto the current branch"><i class="codicon codicon-git-commit"></i></button>
       <button class="tool" id="log-refresh" title="Refresh log"><i class="codicon codicon-refresh"></i></button>

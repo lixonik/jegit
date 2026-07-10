@@ -971,11 +971,15 @@
     const user = logUser.value;
     const days = logDate.value ? Number(logDate.value) : 0;
     logList.innerHTML = '';
+    let shown = 0;
     for (let i = 0; i < logCommits.length; i++) {
       const c = logCommits[i];
       if (!JeGitLog.commitMatches(c, { text: filter, user: user, days: days })) continue;
+      shown++;
       logList.appendChild(logRow(c, graphRows[i], !filter && !user && !days));
     }
+    const count = document.getElementById('log-count');
+    if (count) count.textContent = filter || user || days ? shown + ' / ' + logCommits.length : '';
   }
 
   function logRow(c, gr, withGraph) {
