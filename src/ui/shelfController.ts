@@ -34,6 +34,9 @@ export class ShelfController {
       case 'deleteShelf':
         await this.deleteShelf(m.id);
         return true;
+      case 'shelfDiff':
+        await this.showPatch(m.id);
+        return true;
       case 'shelfFileDiff':
         await this.showFileDiff(m.id, m.path);
         return true;
@@ -106,6 +109,16 @@ export class ShelfController {
         `JeGit: ${err instanceof Error ? err.message : String(err)} (patch may not apply cleanly)`,
       );
     }
+  }
+
+  private async showPatch(id: string): Promise<void> {
+    const patch = this.repo.shelfPatchText(id);
+    if (isEmpty(patch.trim())) {
+      vscode.window.showInformationMessage('JeGit: the shelf patch is empty or missing.');
+      return;
+    }
+    const doc = await vscode.workspace.openTextDocument({ content: patch, language: 'diff' });
+    await vscode.window.showTextDocument(doc, { preview: true });
   }
 
   private async showFileDiff(id: string, rel: string): Promise<void> {

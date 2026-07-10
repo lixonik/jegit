@@ -899,6 +899,23 @@ describe('vcs.js webview smoke', () => {
     expect(cmd.ref).toBe('origin/main');
   });
 
+  it('shows the shelf patch from the shelf context menu', () => {
+    sendToWebview({
+      type: 'shelfData',
+      entries: [{ id: 's1', name: 'WIP dialogs', createdAt: '2026-07-09T12:00:00+03:00', files: ['src/a.ts'] }],
+    });
+    const shelfRow = [...document.querySelectorAll('#shelf-list *')].find((el) =>
+      el.textContent?.includes('WIP dialogs'),
+    ) as HTMLElement;
+    shelfRow.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const item = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Show Patch',
+    ) as HTMLElement;
+    expect(item).toBeDefined();
+    item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'shelfDiff', id: 's1' });
+  });
+
   it('clears the console from its toolbar', () => {
     sendToWebview({ type: 'consoleData', lines: ['$ status'] });
     const consoleEl = document.getElementById('console-log')!;

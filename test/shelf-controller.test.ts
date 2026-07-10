@@ -137,6 +137,29 @@ describe('ShelfController', () => {
     expect(posts).toEqual([]);
   });
 
+  it('shows the whole shelf patch as a diff document', async () => {
+    const shown: unknown[] = [];
+    win.showTextDocument = async (doc: unknown) => {
+      shown.push(doc);
+      return undefined;
+    };
+    const ctrl = new ShelfController(makeRepo(), post);
+    await ctrl.handle({ type: 'shelfDiff', id: 's1' } as Incoming);
+    expect((shown[0] as { content: string; language: string }).language).toBe('diff');
+    expect((shown[0] as { content: string }).content).toContain('diff --git a/src/a.ts');
+  });
+
+  it('reports an empty shelf patch instead of opening a document', async () => {
+    const info = vi.fn(async () => undefined);
+    win.showInformationMessage = info;
+    const shown = vi.fn(async () => undefined);
+    win.showTextDocument = shown;
+    const ctrl = new ShelfController(makeRepo({ shelfPatchText: vi.fn(() => ' \n') }), post);
+    await ctrl.handle({ type: 'shelfDiff', id: 's1' } as Incoming);
+    expect(info).toHaveBeenCalled();
+    expect(shown).not.toHaveBeenCalled();
+  });
+
   it('shows a shelved file diff as a diff document', async () => {
     const shown: unknown[] = [];
     win.showTextDocument = async (doc: unknown) => {

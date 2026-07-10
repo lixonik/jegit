@@ -1255,6 +1255,7 @@
         e.preventDefault();
         e.stopPropagation();
         showCtx(e, [
+          { label: 'Show Patch', cmd: () => vscode.postMessage({ type: 'shelfDiff', id: sh.id }) },
           { label: 'Unshelve (apply and remove)', cmd: () => vscode.postMessage({ type: 'unshelve', id: sh.id }) },
           { label: 'Unshelve and Keep', cmd: () => vscode.postMessage({ type: 'unshelve', id: sh.id, keep: true }) },
           { label: 'Rename...', cmd: () => vscode.postMessage({ type: 'renameShelf', id: sh.id }) },
