@@ -37,6 +37,17 @@
           "type": "boolean",
           "default": false,
           "description": "Use a Git staging area (Staged / Unstaged groups) in Local Changes instead of changelists."
+        },
+        "jegit.protectedBranches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "main",
+            "master"
+          ],
+          "description": "Branch names that get a stronger warning before a force push."
         }
       }
     },

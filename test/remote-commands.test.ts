@@ -61,6 +61,27 @@ describe('remote commands', () => {
     expect(repo.refresh).toHaveBeenCalled();
   });
 
+  it('names a protected branch in the force push warning', async () => {
+    const warn = vi.fn(async () => undefined);
+    win.showWarningMessage = warn;
+    const repo = makeRepo();
+    (repo as unknown as Record<string, unknown>).branch = 'main';
+    const handlers = register(repo);
+    await handlers['jegit.pushForce']();
+    expect(String(warn.mock.calls[0][0])).toContain('protected');
+    expect(repo.git.pushForce).not.toHaveBeenCalled();
+  });
+
+  it('keeps the plain warning for an ordinary branch', async () => {
+    const warn = vi.fn(async () => undefined);
+    win.showWarningMessage = warn;
+    const repo = makeRepo();
+    (repo as unknown as Record<string, unknown>).branch = 'feature/x';
+    const handlers = register(repo);
+    await handlers['jegit.pushForce']();
+    expect(String(warn.mock.calls[0][0])).not.toContain('protected');
+  });
+
   it('reports when there is no upstream to reset to', async () => {
     const repo = makeRepo({ upstreamRef: vi.fn(async () => '') });
     const handlers = register(repo);

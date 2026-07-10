@@ -31,11 +31,13 @@ async function forcePush(repo: Repository): Promise<void> {
     vscode.window.showWarningMessage('JeGit: no upstream to push to.');
     return;
   }
-  const ok = await vscode.window.showWarningMessage(
-    'Force push (--force-with-lease)? This overwrites the remote branch.',
-    { modal: true },
-    'Force Push',
-  );
+  const protectedBranches = vscode.workspace
+    .getConfiguration('jegit')
+    .get<string[]>('protectedBranches', ['main', 'master']);
+  const prompt = protectedBranches.includes(repo.branch)
+    ? `Force push to ${repo.branch}? It is a protected branch -- this overwrites shared history.`
+    : 'Force push (--force-with-lease)? This overwrites the remote branch.';
+  const ok = await vscode.window.showWarningMessage(prompt, { modal: true }, 'Force Push');
   if (ok !== 'Force Push') return;
   try {
     await repo.git.pushForce();
