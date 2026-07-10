@@ -52,7 +52,8 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 - Shelve / Unshelve patches that survive branch switches.
 - Per-file actions on a shelved change: **Show Diff** (double click) and
   **Unshelve This File** (the shelf is kept); **Show Patch** for the whole shelf.
-- Console tab logging git commands, with a filter box and a clear button.
+- Console tab logging git commands, with a filter box, a clear button, and
+  failed commands highlighted in red.
 
 ### Branches and remotes
 - A status-bar widget (`branch ↓behind ↑ahead`, plus an in-progress operation
