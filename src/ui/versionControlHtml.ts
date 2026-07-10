@@ -100,6 +100,7 @@ export function renderVersionControlHtml(webview: vscode.Webview, extensionUri: 
   </div>
   <div class="tabpanel" data-tab="console">
     <div class="toolbar">
+      <input id="console-filter" class="log-search" placeholder="Filter..." />
       <button class="tool" id="console-clear" title="Clear the console"><i class="codicon codicon-clear-all"></i></button>
     </div>
     <div class="console" id="console-log"></div>

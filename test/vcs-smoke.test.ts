@@ -927,6 +927,26 @@ describe('vcs.js webview smoke', () => {
     expect(consoleEl.textContent).toBe('');
   });
 
+  it('filters the console lines and appends live ones through the filter', () => {
+    sendToWebview({ type: 'consoleData', lines: ['$ status --porcelain', '$ push origin main'] });
+    const consoleEl = document.getElementById('console-log')!;
+    const filter = document.getElementById('console-filter') as HTMLInputElement;
+    filter.value = 'push';
+    filter.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(consoleEl.textContent).toContain('push origin');
+    expect(consoleEl.textContent).not.toContain('porcelain');
+
+    sendToWebview({ type: 'consoleLine', line: '$ push --tags' });
+    sendToWebview({ type: 'consoleLine', line: '$ fetch' });
+    expect(consoleEl.textContent).toContain('push --tags');
+    expect(consoleEl.textContent).not.toContain('fetch');
+
+    filter.value = '';
+    filter.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(consoleEl.textContent).toContain('porcelain');
+    expect(consoleEl.textContent).toContain('fetch');
+  });
+
   it('posts copyMessage from the commit context menu', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));

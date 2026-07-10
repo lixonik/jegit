@@ -175,6 +175,14 @@
   });
   $('shelf-refresh').addEventListener('click', () => vscode.postMessage({ type: 'requestShelf' }));
   $('console-clear').addEventListener('click', () => vscode.postMessage({ type: 'clearConsole' }));
+  let consoleLines = [];
+  function renderConsole() {
+    const query = $('console-filter').value.trim().toLowerCase();
+    const shown = query ? consoleLines.filter((l) => l.toLowerCase().includes(query)) : consoleLines;
+    consoleLogEl.textContent = shown.join('\n') + (shown.length ? '\n' : '');
+    consoleLogEl.scrollTop = consoleLogEl.scrollHeight;
+  }
+  $('console-filter').addEventListener('input', renderConsole);
   $('tb-group').addEventListener('click', () => {
     groupByDir = !groupByDir;
     const i = document.querySelector('#tb-group .codicon');
@@ -1427,11 +1435,11 @@
       updateCommitState();
       msg.focus();
     } else if (m.type === 'consoleData') {
-      consoleLogEl.textContent = (m.lines || []).join('\n') + (m.lines && m.lines.length ? '\n' : '');
-      consoleLogEl.scrollTop = consoleLogEl.scrollHeight;
+      consoleLines = m.lines || [];
+      renderConsole();
     } else if (m.type === 'consoleLine') {
-      consoleLogEl.textContent += m.line + '\n';
-      consoleLogEl.scrollTop = consoleLogEl.scrollHeight;
+      consoleLines.push(m.line);
+      renderConsole();
     }
   });
 
