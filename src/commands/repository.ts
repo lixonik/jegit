@@ -84,10 +84,29 @@ async function resolveConflicts(context: vscode.ExtensionContext, repo: Reposito
     rel: f.path,
   }));
   const pick = await vscode.window.showQuickPick(items, {
-    placeHolder: `${conflicted.length} conflicted file(s) -- open in the merge resolver`,
+    placeHolder: `${conflicted.length} conflicted file(s) -- resolve one`,
   });
   if (isNil(pick)) return;
-  await showMergeResolver(context, repo, pick.rel);
+  const action = await vscode.window.showQuickPick(
+    ['$(git-merge) Merge...', '$(arrow-left) Accept Yours', '$(arrow-right) Accept Theirs'],
+    { placeHolder: `Resolve ${pick.rel}` },
+  );
+  if (isNil(action)) return;
+  if (action.endsWith('Merge...')) {
+    await showMergeResolver(context, repo, pick.rel);
+    return;
+  }
+  const side = action.endsWith('Accept Yours') ? 'ours' : 'theirs';
+  try {
+    await repo.git.checkoutSide(pick.rel, side);
+    await repo.git.add([pick.rel]);
+    vscode.window.showInformationMessage(`JeGit: resolved ${pick.rel} using ${side}.`);
+  } catch (err) {
+    vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    await repo.refresh();
+  }
+  await resolveConflicts(context, repo);
 }
 
 async function cleanupMergedBranches(repo: Repository): Promise<void> {

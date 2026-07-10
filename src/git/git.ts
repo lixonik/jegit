@@ -233,6 +233,9 @@ export class Git {
   async checkout(ref: string): Promise<void> {
     await this.raw(['checkout', ref]);
   }
+  async checkoutSide(rel: string, side: 'ours' | 'theirs'): Promise<void> {
+    await this.raw(['checkout', `--${side}`, '--', rel]);
+  }
   async checkoutNew(name: string, from?: string): Promise<void> {
     const args = ['checkout', '-b', name];
     if (from) args.push(from);

@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { registerRepositoryCommands } from '../src/commands/repository';
+import { showMergeResolver } from '../src/ui/mergeResolver';
 import type { Repository } from '../src/model/repository';
 import type { VersionControlView } from '../src/ui/versionControlView';
+
+vi.mock('../src/ui/mergeResolver', () => ({ showMergeResolver: vi.fn(async () => undefined) }));
 
 type Handler = (...args: unknown[]) => Promise<void>;
 const win = vscode.window as unknown as Record<string, unknown>;
@@ -82,6 +85,33 @@ describe('repository commands', () => {
     const { handlers } = register(makeRepo());
     await handlers['jegit.resolveConflicts']();
     expect(info).toHaveBeenCalled();
+  });
+
+  it('resolves a picked conflict by accepting one side', async () => {
+    const status = vi
+      .fn()
+      .mockResolvedValueOnce([{ path: 'a.ts', status: 'UU' }])
+      .mockResolvedValue([]);
+    const checkoutSide = vi.fn(async () => undefined);
+    const add = vi.fn(async () => undefined);
+    const repo = makeRepo({ status, checkoutSide, add });
+    const picks: unknown[] = [{ label: '$(git-merge) a.ts', rel: 'a.ts' }, '$(arrow-left) Accept Yours'];
+    win.showQuickPick = async () => picks.shift();
+    const { handlers } = register(repo);
+    await handlers['jegit.resolveConflicts']();
+    expect(checkoutSide).toHaveBeenCalledWith('a.ts', 'ours');
+    expect(add).toHaveBeenCalledWith(['a.ts']);
+    expect(repo.refresh).toHaveBeenCalled();
+  });
+
+  it('delegates a picked conflict to the merge resolver', async () => {
+    const status = vi.fn(async () => [{ path: 'a.ts', status: 'UU' }]);
+    const repo = makeRepo({ status });
+    const picks: unknown[] = [{ label: '$(git-merge) a.ts', rel: 'a.ts' }, '$(git-merge) Merge...'];
+    win.showQuickPick = async () => picks.shift();
+    const { handlers } = register(repo);
+    await handlers['jegit.resolveConflicts']();
+    expect(showMergeResolver).toHaveBeenCalledWith(expect.anything(), repo, 'a.ts');
   });
 
   it('cleans up merged branches, never touching main or the current one', async () => {
