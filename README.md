@@ -23,8 +23,11 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 - `Ctrl+Enter` commits, `Ctrl+Shift+Enter` commits and pushes.
 
 ### Log
-- Commit graph with ref chips, Subject / Author / Date columns, and a details
-  panel on the right showing the changed files as a tree (click to diff).
+- Commit graph with clickable ref chips (switch the log to a branch or tag),
+  Subject / Author / Date columns, and a details panel on the right showing
+  the changed files as a tree (click to diff, or **Show Diff with Local**).
+- Arrow-key navigation over commits; Ctrl-click marks a pair to **Compare
+  Selected Versions** or **Cherry-Pick Selected (oldest first)**.
 - Filters: free text, **Branch**, **User**, **Date**, and **Path**.
 - Commit context menu: Checkout, New Branch, Cherry-Pick, Revert, Reset, Edit
   Commit Message (any commit), Undo Commit, Squash, Fixup, Drop, **Interactively
