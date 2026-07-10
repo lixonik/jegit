@@ -1012,6 +1012,27 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'logPathFilter' });
   });
 
+  it('switches the log scope from a containing branch in the details', () => {
+    const row = document.querySelector('.log-row') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const hash = row.dataset.hash!;
+    sendToWebview({
+      type: 'commitDetailsData',
+      hash,
+      files: [{ status: 'M', path: 'src/a.ts' }],
+      body: 'msg',
+      committer: { name: 'Dev', date: '2026-07-01' },
+      branches: ['dev', 'main'],
+      tags: [],
+    });
+    const link = [...document.querySelectorAll('#log-details .det-ref')].find(
+      (el) => el.textContent === 'dev',
+    ) as HTMLElement;
+    expect(link).toBeDefined();
+    link.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'setLogScope', scope: 'dev' });
+  });
+
   it('opens a details file on the remote from its context menu', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('click', { bubbles: true }));

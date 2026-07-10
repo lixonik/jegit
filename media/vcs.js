@@ -1197,9 +1197,20 @@
       const shown = refs.slice(0, 6);
       const row = document.createElement('div');
       row.className = 'det-meta ' + cls;
-      row.textContent =
-        label + shown.join(', ') + (refs.length > shown.length ? ', +' + (refs.length - shown.length) + ' more' : '');
       row.title = refs.join('\n');
+      row.appendChild(document.createTextNode(label));
+      shown.forEach((r, i) => {
+        if (i) row.appendChild(document.createTextNode(', '));
+        const link = document.createElement('span');
+        link.className = 'det-ref';
+        link.textContent = r;
+        link.style.cursor = 'pointer';
+        link.addEventListener('click', () => vscode.postMessage({ type: 'setLogScope', scope: r }));
+        row.appendChild(link);
+      });
+      if (refs.length > shown.length) {
+        row.appendChild(document.createTextNode(', +' + (refs.length - shown.length) + ' more'));
+      }
       logDetails.appendChild(row);
     };
     containedIn('In branches: ', 'det-branches', d.branches);
