@@ -21,7 +21,7 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
   **amending an already pushed commit**.
 - **Rollback**, **Shelve** (or **Shelve Silently** under the active changelist
   name), **Create Patch**, **Add to .gitignore**, **Show History**,
-  **Copy Path**; click a file for a HEAD diff.
+  **Copy Path**, **Reveal in File Explorer**; click a file for a HEAD diff.
 - `Ctrl+Enter` commits, `Ctrl+Shift+Enter` commits and pushes.
 
 ### Log
@@ -89,12 +89,12 @@ any git repository. The **JeGit** panel opens in the bottom tool-window area
 
 ## Testing
 
-Nearly 500 vitest unit tests cover the git output parsers, every message
+Over 520 vitest unit tests cover the git output parsers, every message
 route of the tab controllers (Local Changes / Log / Shelf) and the root
 webview router, the UI flows (branches, stash, worktrees, remotes,
-push/update, file history), the injectable domain services (`Git.stash` /
-`Git.worktree` / `Git.remote` / `Git.tag`), CLI argument assembly, and the
-commit message inspections. The `vscode` module is replaced
+push/update, file history, apply-patch), the injectable domain services
+(`Git.stash` / `Git.worktree` / `Git.remote` / `Git.tag`), CLI argument
+assembly, and the commit message inspections. The `vscode` module is replaced
 by a scriptable mock (`test/vscode-mock.ts`), and the webview itself
 (`media/vcs.js`, the rebase dialog) is exercised in jsdom -- checkboxes,
 context menus, filters, hotkeys, and tab persistence are all driven by

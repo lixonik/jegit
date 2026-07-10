@@ -19,7 +19,7 @@
 - Staging mode: Stage All / Unstage All buttons on the group headers.
 - Rollback and shelf deletion list the affected files in the confirmation.
 - Log: Escape clears the search box; an active filter shows a shown/total commit count.
-- Local Changes: the collapsed changelist groups survive a webview reload.
+- Local Changes: the collapsed changelist groups survive a webview reload; Reveal in File Explorer in the file menu.
 - Update remembers the last picked pull mode for the session.
 - Log: Browse Repository at This Revision in the commit context menu.
 - File History: Compare with Local alongside Show Diff and Restore.
@@ -41,7 +41,7 @@
 - Git output parsers moved to `src/git/parsers`; all process spawning routed through a single `execGit` runner.
 - Stash, worktree, remote, and tag operations grouped into injectable domain services (`Git.stash` / `Git.worktree` / `Git.remote` / `Git.tag`).
 - Explicit value guards (`isNil` / `isEmpty` / `notEmpty`) adopted across the codebase.
-- The test suite grew from 176 to nearly 500 unit tests: every message route of the tab controllers and the root webview router, every UI flow and dialog, injectable domain services, CLI argument assembly, activation/manifest consistency, message linting, and jsdom-driven webview tests (tree checkboxes, context menus, log filters, commit hotkeys, the rebase dialog) -- all without an extension host.
+- The test suite grew from 176 to over 520 unit tests: every message route of the tab controllers and the root webview router, every UI flow and dialog (including the Branches and Worktrees popups end to end), injectable domain services, CLI argument assembly, activation/manifest consistency, message linting, and jsdom-driven webview tests (tree checkboxes, context menus, log filters, commit hotkeys, the rebase dialog) -- all without an extension host.
 
 ## 0.1.0
 
