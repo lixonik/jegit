@@ -1012,6 +1012,36 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'logPathFilter' });
   });
 
+  it('posts hunks, move and patch actions from the file context menu', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [changeItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const fileNode = [...document.querySelectorAll('#tree *')].find(
+      (el) => el.textContent === 'a.ts' || el.textContent?.trim() === 'a.ts',
+    ) as HTMLElement;
+    const clickMenuItem = (label: string) => {
+      fileNode.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+      const item = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+        (el) => el.textContent === label,
+      ) as HTMLElement;
+      expect(item).toBeDefined();
+      item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    };
+    clickMenuItem('Commit Selected Hunks...');
+    expect(posted).toContainEqual({ type: 'commitHunks', path: 'src/a.ts' });
+    clickMenuItem('Move to Another Changelist...');
+    expect(posted).toContainEqual({ type: 'move', paths: ['src/a.ts'] });
+    clickMenuItem('Create Patch...');
+    expect(posted).toContainEqual({ type: 'createPatch', items: [{ path: 'src/a.ts', untracked: false }] });
+  });
+
   it('resolves and marks a conflicted file from its context menu', () => {
     const conflictItem = {
       path: 'src/c.ts',
