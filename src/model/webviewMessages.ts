@@ -58,6 +58,7 @@ export type Incoming =
   | { type: 'unshelveFile'; id: string; path: string }
   | { type: 'browseAt'; hash: string }
   | { type: 'openRevFileRemote'; hash: string; path: string }
+  | { type: 'copyMessage'; hash: string }
   | { type: 'openFile'; path: string }
   | { type: 'mergeResolve'; path: string }
   | { type: 'markResolved'; paths: string[] }

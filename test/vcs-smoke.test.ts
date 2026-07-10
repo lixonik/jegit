@@ -864,6 +864,18 @@ describe('vcs.js webview smoke', () => {
     expect(call.hash).toHaveLength(40);
   });
 
+  it('posts copyMessage from the commit context menu', () => {
+    const row = document.querySelector('.log-row') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const item = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Copy Full Message',
+    ) as HTMLElement;
+    expect(item).toBeDefined();
+    item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const call = posted.filter((p) => p.type === 'copyMessage').at(-1) as { hash: string };
+    expect(call.hash).toHaveLength(40);
+  });
+
   it('opens a details file on the remote from its context menu', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('click', { bubbles: true }));

@@ -150,6 +150,26 @@ describe('LogController', () => {
     expect(writeText).toHaveBeenCalledWith('abcdef1234567890');
   });
 
+  it('copies the full commit message to the clipboard', async () => {
+    const writeText = vi.fn(async () => undefined);
+    (vscode.env.clipboard as { writeText: unknown }).writeText = writeText;
+    const { ctrl, git } = makeController();
+    await ctrl.handle({ type: 'copyMessage', hash: 'abc' } as Incoming);
+    expect(git.commitBody).toHaveBeenCalledWith('abc');
+    expect(writeText).toHaveBeenCalledWith('old message');
+  });
+
+  it('reports instead of copying an unreadable commit message', async () => {
+    const writeText = vi.fn(async () => undefined);
+    (vscode.env.clipboard as { writeText: unknown }).writeText = writeText;
+    const info = vi.fn(async () => undefined);
+    win.showInformationMessage = info;
+    const { ctrl } = makeController(makeGit({ commitBody: vi.fn(async () => ' \n') }));
+    await ctrl.handle({ type: 'copyMessage', hash: 'abc' } as Incoming);
+    expect(writeText).not.toHaveBeenCalled();
+    expect(info).toHaveBeenCalled();
+  });
+
   it('remembers the path filter for subsequent log queries', async () => {
     const { ctrl, git } = makeController();
     win.showInputBox = async () => 'src/app';

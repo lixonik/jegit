@@ -92,6 +92,16 @@ export class LogController {
         await vscode.env.clipboard.writeText(m.text);
         vscode.window.showInformationMessage('JeGit: commit subject copied to clipboard.');
         return true;
+      case 'copyMessage': {
+        const body = await this.repo.git.commitBody(m.hash).catch(() => '');
+        if (isEmpty(body.trim())) {
+          vscode.window.showInformationMessage('JeGit: could not read the commit message.');
+          return true;
+        }
+        await vscode.env.clipboard.writeText(body);
+        vscode.window.showInformationMessage('JeGit: full commit message copied to clipboard.');
+        return true;
+      }
       case 'branchesContaining':
         await this.showContaining(m.hash, await this.repo.git.branchesContaining(m.hash), 'local branch', 'branch');
         return true;

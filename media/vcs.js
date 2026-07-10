@@ -1029,6 +1029,7 @@
         { label: 'Push All up to Here...', cmd: () => vscode.postMessage({ type: 'pushUpTo', hash: c.hash }) },
         { label: 'Copy Revision Number', cmd: () => vscode.postMessage({ type: 'copyHash', hash: c.hash }) },
         { label: 'Copy Subject', cmd: () => vscode.postMessage({ type: 'copySubject', text: c.subject }) },
+        { label: 'Copy Full Message', cmd: () => vscode.postMessage({ type: 'copyMessage', hash: c.hash }) },
         { label: 'Browse Repository at This Revision', cmd: () => vscode.postMessage({ type: 'browseAt', hash: c.hash }) },
         { label: 'Open Commit on Remote', cmd: () => vscode.postMessage({ type: 'openCommitRemote', hash: c.hash }) },
         { label: 'Branches Containing Revision...', cmd: () => vscode.postMessage({ type: 'branchesContaining', hash: c.hash }) },
