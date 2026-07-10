@@ -3,7 +3,16 @@
   // Persisted UI layout (pane widths, active tab, branch-group collapse), so the
   // Log layout survives reloads like a JetBrains tool window.
   const ui = Object.assign(
-    { branchesW: 0, detailsW: 0, tab: '', branchCollapsed: {}, branchDirCollapsed: {}, tabOrder: [], logFilters: {} },
+    {
+      branchesW: 0,
+      detailsW: 0,
+      tab: '',
+      branchCollapsed: {},
+      branchDirCollapsed: {},
+      tabOrder: [],
+      logFilters: {},
+      clCollapsed: [],
+    },
     vscode.getState() || {},
   );
   function saveUi() {
@@ -16,7 +25,11 @@
   let state = { branch: '', total: 0, changelists: [] };
   const checked = new Set();
   const known = new Set();
-  const collapsed = new Set();
+  const collapsed = new Set(ui.clCollapsed || []);
+  function persistCollapsed() {
+    ui.clCollapsed = [...collapsed];
+    saveUi();
+  }
   let groupByDir = true;
   let amendLoadedMsg = '';
   let selectedPath = null;
@@ -144,10 +157,12 @@
   $('tb-new').addEventListener('click', () => vscode.postMessage({ type: 'newChangelist' }));
   $('tb-expand').addEventListener('click', () => {
     collapsed.clear();
+    persistCollapsed();
     render();
   });
   $('tb-collapse').addEventListener('click', () => {
     state.changelists.forEach((c) => collapsed.add(c.id));
+    persistCollapsed();
     render();
   });
   $('tb-rollback').addEventListener('click', () => {
@@ -410,6 +425,7 @@
       e.stopPropagation();
       if (collapsed.has(id)) collapsed.delete(id);
       else collapsed.add(id);
+      persistCollapsed();
       render();
     });
 
@@ -518,6 +534,7 @@
     const toggle = () => {
       if (isCollapsed) collapsed.delete(key);
       else collapsed.add(key);
+      persistCollapsed();
       render();
     };
     chev.addEventListener('click', (e) => {
@@ -629,6 +646,7 @@
       e.stopPropagation();
       if (collapsed.has(cl.id)) collapsed.delete(cl.id);
       else collapsed.add(cl.id);
+      persistCollapsed();
       render();
     });
 

@@ -19,7 +19,11 @@ describe('vcs.js ui state persistence', () => {
   beforeAll(() => {
     (globalThis as Record<string, unknown>).acquireVsCodeApi = () => ({
       postMessage: () => undefined,
-      getState: () => ({ tab: 'log', logFilters: { text: 'fix', user: 'Dev', date: '7' } }),
+      getState: () => ({
+        tab: 'log',
+        logFilters: { text: 'fix', user: 'Dev', date: '7' },
+        clCollapsed: ['default'],
+      }),
       setState: (s: Record<string, unknown>) => savedStates.push(s),
     });
     document.body.innerHTML = bodyHtml();
@@ -61,6 +65,49 @@ describe('vcs.js ui state persistence', () => {
       }),
     );
     expect((document.getElementById('log-user') as HTMLSelectElement).value).toBe('Dev');
+  });
+
+  it('restores the collapsed changelists and persists a toggle', () => {
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          type: 'state',
+          payload: {
+            branch: 'main',
+            total: 1,
+            changelists: [
+              {
+                id: 'default',
+                name: 'Changes',
+                active: true,
+                files: [
+                  {
+                    path: 'src/a.ts',
+                    status: 'M',
+                    statusLabel: 'Modified',
+                    letter: 'M',
+                    untracked: false,
+                    deleted: false,
+                    conflicted: false,
+                    fsPath: 'D:/repo/src/a.ts',
+                  },
+                ],
+              },
+            ],
+          },
+          operation: null,
+          staging: null,
+        },
+      }),
+    );
+    const tree = document.getElementById('tree')!;
+    expect([...tree.querySelectorAll('.fname')].some((el) => el.textContent === 'a.ts')).toBe(false);
+
+    const chev = tree.querySelector('.cl-node .chev') as HTMLElement;
+    chev.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect([...tree.querySelectorAll('.fname')].some((el) => el.textContent === 'a.ts')).toBe(true);
+    const last = savedStates.at(-1) as { clCollapsed?: string[] };
+    expect(last.clCollapsed).toEqual([]);
   });
 
   it('persists the log filters as the user edits them', () => {
