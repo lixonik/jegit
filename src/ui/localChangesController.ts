@@ -149,6 +149,7 @@ export class LocalChangesController {
       return;
     }
     if (!(await this.confirmMessageIssues(m.message.trim()))) return;
+    if (m.amend && !(await this.confirmAmendPushed())) return;
     try {
       await this.repo.commit(m.paths, m.message.trim(), {
         amend: m.amend,
@@ -163,6 +164,22 @@ export class LocalChangesController {
     } catch (err) {
       vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
     }
+  }
+
+  private async confirmAmendPushed(): Promise<boolean> {
+    const upstream = await this.repo.git.raw(['rev-parse', '--abbrev-ref', '@{u}']).catch(() => '');
+    if (isEmpty(upstream.trim())) return true;
+    const [head, outgoing] = await Promise.all([
+      this.repo.git.headHash().catch(() => ''),
+      this.repo.git.outgoingHashes(),
+    ]);
+    if (isEmpty(head) || outgoing.includes(head)) return true;
+    const ok = await vscode.window.showWarningMessage(
+      'The last commit is already on the upstream. Amending rewrites published history.',
+      { modal: true },
+      'Amend Anyway',
+    );
+    return ok === 'Amend Anyway';
   }
 
   private async commitStaged(message: string, push: boolean): Promise<void> {

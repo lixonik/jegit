@@ -116,6 +116,33 @@ describe('LocalChangesController', () => {
     expect(repo.commit).toHaveBeenCalled();
   });
 
+  it('warns before amending a pushed commit', async () => {
+    const repo = makeRepo();
+    (repo.git as unknown as Record<string, unknown>).raw = vi.fn(async () => 'origin/main\n');
+    (repo.git as unknown as Record<string, unknown>).headHash = vi.fn(async () => 'h1');
+    (repo.git as unknown as Record<string, unknown>).outgoingHashes = vi.fn(async () => []);
+    const { ctrl } = makeController(repo);
+    await ctrl.handle(commitMsg({ amend: true }));
+    expect(repo.commit).not.toHaveBeenCalled();
+
+    win.showWarningMessage = async () => 'Amend Anyway';
+    await ctrl.handle(commitMsg({ amend: true }));
+    expect(repo.commit).toHaveBeenCalled();
+  });
+
+  it('amends an unpushed commit without a warning', async () => {
+    const repo = makeRepo();
+    (repo.git as unknown as Record<string, unknown>).raw = vi.fn(async () => 'origin/main\n');
+    (repo.git as unknown as Record<string, unknown>).headHash = vi.fn(async () => 'h1');
+    (repo.git as unknown as Record<string, unknown>).outgoingHashes = vi.fn(async () => ['h1']);
+    const warn = vi.fn(async () => undefined);
+    win.showWarningMessage = warn;
+    const { ctrl } = makeController(repo);
+    await ctrl.handle(commitMsg({ amend: true }));
+    expect(repo.commit).toHaveBeenCalled();
+    expect(warn).not.toHaveBeenCalled();
+  });
+
   it('commits the staging area and pushes when asked', async () => {
     const { ctrl, repo, posts } = makeController();
     const exec = vi.fn(async () => undefined);
