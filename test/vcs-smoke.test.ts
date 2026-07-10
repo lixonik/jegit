@@ -1012,6 +1012,17 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'logPathFilter' });
   });
 
+  it('clears the log search with Escape', () => {
+    const search = document.getElementById('log-search') as HTMLInputElement;
+    search.value = 'filter';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+    expect(document.querySelectorAll('#log-list .lg-hl').length).toBeGreaterThan(0);
+
+    search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(search.value).toBe('');
+    expect(document.querySelectorAll('#log-list .lg-hl').length).toBe(0);
+  });
+
   it('filters the log by the author clicked in the details', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('click', { bubbles: true }));

@@ -199,6 +199,14 @@
     saveLogFilters();
     renderLog();
   });
+  logSearch.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && logSearch.value) {
+      e.stopPropagation();
+      logSearch.value = '';
+      saveLogFilters();
+      renderLog();
+    }
+  });
   logUser.addEventListener('change', () => {
     saveLogFilters();
     renderLog();
