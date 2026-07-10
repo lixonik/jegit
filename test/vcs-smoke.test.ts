@@ -588,6 +588,28 @@ describe('vcs.js webview smoke', () => {
     expect(document.querySelectorAll('.log-row')).toHaveLength(2);
   });
 
+  it('filters the log rows by the picked date range', () => {
+    sendToWebview({
+      type: 'logData',
+      commits: [
+        { hash: 'e'.repeat(40), parents: [], author: 'Dev', email: 'a@e', date: new Date().toISOString(), subject: 'Fresh work', refs: [] },
+        { hash: 'f'.repeat(40), parents: [], author: 'Dev', email: 'a@e', date: '2020-01-01T12:00:00+03:00', subject: 'Ancient work', refs: [] },
+      ],
+    });
+    expect(document.querySelectorAll('.log-row')).toHaveLength(2);
+
+    const dateSelect = document.getElementById('log-date') as HTMLSelectElement;
+    dateSelect.value = '7';
+    dateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    const rows = [...document.querySelectorAll('.log-row')];
+    expect(rows).toHaveLength(1);
+    expect(rows[0].textContent).toContain('Fresh work');
+
+    dateSelect.value = '';
+    dateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(document.querySelectorAll('.log-row')).toHaveLength(2);
+  });
+
   it('opens the revision diff when a details file is clicked', () => {
     const fileRow = [...document.querySelectorAll('#log-details *')].find(
       (el) => el.textContent?.trim() === 'a.ts',
