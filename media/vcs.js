@@ -1172,8 +1172,19 @@
     if (commit) {
       const meta = document.createElement('div');
       meta.className = 'det-meta';
-      meta.textContent =
-        commit.author + ' <' + commit.email + '>  ' + (commit.date || '').replace('T', ' ').slice(0, 16);
+      const authorLink = document.createElement('span');
+      authorLink.className = 'det-author';
+      authorLink.textContent = commit.author;
+      authorLink.style.cursor = 'pointer';
+      authorLink.title = 'Show only commits by ' + commit.author;
+      authorLink.addEventListener('click', () => {
+        logUser.value = commit.author;
+        logUser.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      meta.appendChild(authorLink);
+      meta.appendChild(
+        document.createTextNode(' <' + commit.email + '>  ' + (commit.date || '').replace('T', ' ').slice(0, 16)),
+      );
       logDetails.appendChild(meta);
     }
     if (commit && d.committer && d.committer.name && d.committer.name !== commit.author) {

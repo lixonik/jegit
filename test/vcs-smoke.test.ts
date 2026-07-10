@@ -1012,6 +1012,29 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'logPathFilter' });
   });
 
+  it('filters the log by the author clicked in the details', () => {
+    const row = document.querySelector('.log-row') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const hash = row.dataset.hash!;
+    sendToWebview({
+      type: 'commitDetailsData',
+      hash,
+      files: [],
+      body: 'msg',
+      committer: { name: 'Dev', date: '2026-07-01' },
+      branches: [],
+      tags: [],
+    });
+    const author = document.querySelector('#log-details .det-author') as HTMLElement;
+    expect(author).toBeDefined();
+    const name = author.textContent!;
+    author.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const select = document.getElementById('log-user') as HTMLSelectElement;
+    expect(select.value).toBe(name);
+    select.value = '';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
   it('switches the log scope from a containing branch in the details', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
