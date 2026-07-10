@@ -663,6 +663,48 @@ describe('vcs.js webview smoke', () => {
     expect(posted.filter((p) => p.type === 'commitDetails')).toHaveLength(detailsBefore);
   });
 
+  it('walks the log with the arrow keys', () => {
+    const logTab = document.querySelector('.tab[data-tab="log"]') as HTMLElement;
+    logTab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    sendToWebview({
+      type: 'logData',
+      commits: [
+        { hash: 'j'.repeat(40), parents: [], author: 'Dev', email: 'a@e', date: '2026-07-09T12:00:00+03:00', subject: 'Key nav one', refs: [] },
+        { hash: 'k'.repeat(40), parents: [], author: 'Dev', email: 'a@e', date: '2026-07-08T12:00:00+03:00', subject: 'Key nav two', refs: [] },
+      ],
+    });
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    let selected = document.querySelector('.log-row.selected') as HTMLElement;
+    expect(selected.textContent).toContain('Key nav one');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    selected = document.querySelector('.log-row.selected') as HTMLElement;
+    expect(selected.textContent).toContain('Key nav two');
+    expect(posted).toContainEqual({ type: 'commitDetails', hash: 'k'.repeat(40) });
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    selected = document.querySelector('.log-row.selected') as HTMLElement;
+    expect(selected.textContent).toContain('Key nav one');
+
+    sendToWebview({
+      type: 'logData',
+      commits: [
+        { hash: 'b'.repeat(40), parents: ['a'.repeat(40)], author: 'Dev', email: 'd@e', date: '2026-07-09T12:00:00+03:00', subject: 'Fix the filter', refs: ['main'] },
+        { hash: 'a'.repeat(40), parents: [], author: 'Dev', email: 'd@e', date: '2026-07-08T12:00:00+03:00', subject: 'Initial commit', refs: [] },
+      ],
+    });
+    (document.querySelector('.log-row') as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    sendToWebview({
+      type: 'commitDetailsData',
+      hash: 'b'.repeat(40),
+      files: [{ status: 'M', path: 'src/a.ts' }],
+      body: 'Fix the filter\n\nDetails body.',
+      committer: { name: 'Dev', date: '2026-07-09T12:00:00+03:00' },
+      branches: ['main'],
+      tags: [],
+    });
+  });
+
   it('closes the context menu with Escape', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));

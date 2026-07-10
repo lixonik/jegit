@@ -689,6 +689,22 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') hideCtx();
   });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT')) return;
+    const logTab = document.querySelector('.tab[data-tab="log"]');
+    if (!logTab || !logTab.classList.contains('active') || !logCommits.length) return;
+    const idx = logCommits.findIndex((c) => c.hash === selectedHash);
+    const next =
+      e.key === 'ArrowDown' ? (idx < 0 ? 0 : Math.min(idx + 1, logCommits.length - 1)) : Math.max(idx - 1, 0);
+    const row = document.querySelector('.log-row[data-hash="' + logCommits[next].hash + '"]');
+    if (row) {
+      e.preventDefault();
+      row.click();
+      if (row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
+    }
+  });
   document.addEventListener('click', hideCtx);
   window.addEventListener('blur', hideCtx);
 
