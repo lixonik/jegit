@@ -864,6 +864,29 @@ describe('vcs.js webview smoke', () => {
     expect(call.hash).toHaveLength(40);
   });
 
+  it('scopes the log to HEAD or all branches from the panel rows', () => {
+    sendToWebview({
+      type: 'branchData',
+      current: 'main',
+      locals: ['main'],
+      remotes: [],
+      outgoing: [],
+      scope: '--all',
+      logPath: '',
+    });
+    const panel = document.getElementById('log-branches')!;
+    const head = panel.querySelector('.lb-head') as HTMLElement;
+    const all = [...panel.querySelectorAll('.lb-all')].find(
+      (el) => !el.classList.contains('lb-head'),
+    ) as HTMLElement;
+    expect(head).toBeDefined();
+    expect(all).toBeDefined();
+    head.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'setLogScope', scope: 'HEAD' });
+    all.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'setLogScope', scope: '--all' });
+  });
+
   it('copies a branch name from the branch panel menu', () => {
     sendToWebview({
       type: 'branchData',
