@@ -68,13 +68,16 @@ any git repository. The **JeGit** panel opens in the bottom tool-window area
 
 ## Testing
 
-350+ vitest unit tests cover the git output parsers, the tab controllers
+400+ vitest unit tests cover the git output parsers, the tab controllers
 (Local Changes / Log / Shelf), the UI flows (branches, stash, worktrees,
 remotes, push/update, file history), the injectable domain services
 (`Git.stash` / `Git.worktree` / `Git.remote` / `Git.tag`), CLI argument
 assembly, and the commit message inspections. The `vscode` module is replaced
-by a scriptable mock (`test/vscode-mock.ts`), so the suite runs in under a
-second without an extension host.
+by a scriptable mock (`test/vscode-mock.ts`), and the webview itself
+(`media/vcs.js`, the rebase dialog) is exercised in jsdom -- checkboxes,
+context menus, filters, hotkeys, and tab persistence are all driven by
+simulated user events. The whole suite runs in seconds without an
+extension host.
 
 ## Settings
 
