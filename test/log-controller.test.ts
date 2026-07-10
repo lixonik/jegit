@@ -220,6 +220,30 @@ describe('LogController', () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  it('browses the repository files at a commit', async () => {
+    const exec = vi.fn(async () => undefined);
+    (vscode.commands as unknown as Record<string, unknown>).executeCommand = exec;
+    win.showQuickPick = async () => 'src/a.ts';
+    const { ctrl, git } = makeController(makeGit({ lsTree: vi.fn(async () => ['src/a.ts', 'src/b.ts']) }));
+    await ctrl.handle({ type: 'browseAt', hash: 'abc123' } as Incoming);
+    expect(git.lsTree).toHaveBeenCalledWith('abc123');
+    const [cmd, uri] = exec.mock.calls[0] as [string, { path: string; query: string }];
+    expect(cmd).toBe('vscode.open');
+    expect(uri.path).toBe('/src/a.ts');
+    expect(uri.query).toBe('abc123');
+  });
+
+  it('reports an empty tree instead of opening the browser pick', async () => {
+    const exec = vi.fn(async () => undefined);
+    (vscode.commands as unknown as Record<string, unknown>).executeCommand = exec;
+    const info = vi.fn(async () => undefined);
+    win.showInformationMessage = info;
+    const { ctrl } = makeController(makeGit({ lsTree: vi.fn(async () => []) }));
+    await ctrl.handle({ type: 'browseAt', hash: 'abc123' } as Incoming);
+    expect(info).toHaveBeenCalled();
+    expect(exec).not.toHaveBeenCalled();
+  });
+
   it('diffs a revision file against the local copy', async () => {
     const exec = vi.fn(async () => undefined);
     (vscode.commands as unknown as Record<string, unknown>).executeCommand = exec;

@@ -824,4 +824,16 @@ describe('vcs.js webview smoke', () => {
     item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(posted).toContainEqual({ type: 'unshelveFile', id: 's1', path: 'src/a.ts' });
   });
+
+  it('posts browseAt from the commit context menu', () => {
+    const row = document.querySelector('.log-row') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const item = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Browse Repository at This Revision',
+    ) as HTMLElement;
+    expect(item).toBeDefined();
+    item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const call = posted.filter((p) => p.type === 'browseAt').at(-1) as { hash: string };
+    expect(call.hash).toHaveLength(40);
+  });
 });

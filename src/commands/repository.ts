@@ -6,7 +6,7 @@ import { manageRemotes } from '../ui/remotes';
 import { manageWorktrees } from '../ui/worktrees';
 import { stashChanges, unstash } from '../ui/stash';
 import { showMergeResolver } from '../ui/mergeResolver';
-import { REV_SCHEME } from '../ui/quickDiff';
+import { browseFilesAt } from '../ui/browseRevision';
 import { isConflicted } from '../util/status';
 import { isDefined, isEmpty, isNil, notEmpty } from '../util/guards';
 
@@ -59,15 +59,7 @@ async function browseAtRevision(repo: Repository): Promise<void> {
     value: 'HEAD',
   });
   if (isNil(rev) || isEmpty(rev.trim())) return;
-  const files = await repo.git.lsTree(rev.trim());
-  if (isEmpty(files)) {
-    vscode.window.showInformationMessage('JeGit: no files at that revision (or revision not found).');
-    return;
-  }
-  const file = await vscode.window.showQuickPick(files, { placeHolder: `Files at ${rev.trim()} -- open one` });
-  if (isNil(file)) return;
-  const uri = vscode.Uri.from({ scheme: REV_SCHEME, path: '/' + file, query: rev.trim() });
-  await vscode.commands.executeCommand('vscode.open', uri);
+  await browseFilesAt(repo, rev.trim());
 }
 
 async function resolveConflicts(context: vscode.ExtensionContext, repo: Repository): Promise<void> {

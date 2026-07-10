@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import type { Repository } from '../model/repository';
 import type { Incoming } from '../model/webviewMessages';
 import { performBranchAction } from './branches';
+import { browseFilesAt } from './browseRevision';
 import { showRebaseDialog } from './rebaseDialog';
 import { REV_SCHEME } from './quickDiff';
 import { toWebUrl, commitWebUrl } from '../util/remoteUrl';
@@ -46,6 +47,9 @@ export class LogController {
         return true;
       case 'compareCommits':
         await this.compareCommits(m.a, m.b);
+        return true;
+      case 'browseAt':
+        await browseFilesAt(this.repo, m.hash);
         return true;
       case 'branchCmd': {
         const { current } = await this.repo.git.branches();
