@@ -18,7 +18,8 @@
 - Shelf: per-file Show Diff (double click) and Unshelve This File (shelf kept); Show Patch for the whole shelf; Shelve Silently under the active changelist name.
 - Staging mode: Stage All / Unstage All buttons on the group headers.
 - Rollback and shelf deletion list the affected files in the confirmation.
-- Log: Escape clears the search box.
+- Log: Escape clears the search box; an active filter shows a shown/total commit count.
+- Local Changes: the collapsed changelist groups survive a webview reload.
 - Update remembers the last picked pull mode for the session.
 - Log: Browse Repository at This Revision in the commit context menu.
 - File History: Compare with Local alongside Show Diff and Restore.

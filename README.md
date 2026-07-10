@@ -33,7 +33,8 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 - Arrow-key navigation over commits; Ctrl-click marks a pair to **Compare
   Selected Versions** or **Cherry-Pick Selected (oldest first)**.
 - Filters: free text, **Branch**, **User**, **Date**, and **Path**; the text,
-  user and date filters survive a reload.
+  user and date filters survive a reload, an active filter shows a shown/total
+  count, and Escape clears the search.
 - Commit context menu: Checkout, New Branch, Cherry-Pick, Revert, Reset, Edit
   Commit Message (any commit), Undo Commit, Squash, Fixup, Drop, **Interactively
   Rebase from Here** (drag-reorder + pick/fixup/drop), New Tag, Copy Revision,
