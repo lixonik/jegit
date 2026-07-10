@@ -32,6 +32,7 @@ export type Incoming =
   | { type: 'rollback'; items: { path: string; untracked: boolean }[] }
   | { type: 'commitDetails'; hash: string }
   | { type: 'openRevDiff'; hash: string; parent: string; path: string }
+  | { type: 'openRevLocalDiff'; hash: string; path: string }
   | {
       type:
         | 'copyHash'

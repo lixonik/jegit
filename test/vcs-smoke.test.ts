@@ -633,6 +633,21 @@ describe('vcs.js webview smoke', () => {
     expect(picks.map((p) => p.hash)).toEqual(['g'.repeat(40), 'h'.repeat(40)]);
   });
 
+  it('offers Show Diff with Local on a details file', () => {
+    const fileRow = [...document.querySelectorAll('#log-details *')].find(
+      (el) => el.textContent?.trim() === 'a.ts',
+    ) as HTMLElement;
+    fileRow.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const item = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Show Diff with Local',
+    ) as HTMLElement;
+    expect(item).toBeDefined();
+    item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const call = posted.filter((p) => p.type === 'openRevLocalDiff').at(-1) as { hash: string; path: string };
+    expect(call.hash).toBe('b'.repeat(40));
+    expect(call.path).toBe('src/a.ts');
+  });
+
   it('closes the context menu with Escape', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));

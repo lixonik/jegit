@@ -35,7 +35,12 @@ function makeGit(overrides: Record<string, unknown> = {}) {
 }
 
 function makeRepo(git: ReturnType<typeof makeGit>): Repository {
-  return { git, branch: 'main', refresh: vi.fn(async () => undefined) } as unknown as Repository;
+  return {
+    git,
+    branch: 'main',
+    refresh: vi.fn(async () => undefined),
+    absUri: (rel: string) => ({ fsPath: 'D:/repo/' + rel }),
+  } as unknown as Repository;
 }
 
 function makeController(git = makeGit()) {
@@ -193,6 +198,18 @@ describe('LogController', () => {
       branches: ['main'],
       tags: ['v1'],
     });
+  });
+
+  it('diffs a revision file against the local copy', async () => {
+    const exec = vi.fn(async () => undefined);
+    (vscode.commands as unknown as Record<string, unknown>).executeCommand = exec;
+    const { ctrl } = makeController();
+    await ctrl.handle({ type: 'openRevLocalDiff', hash: 'a'.repeat(40), path: 'src/a.ts' } as Incoming);
+    expect(exec).toHaveBeenCalled();
+    const [cmd, , right, title] = exec.mock.calls[0] as [string, unknown, { fsPath: string }, string];
+    expect(cmd).toBe('vscode.diff');
+    expect(right.fsPath).toBe('D:/repo/src/a.ts');
+    expect(title).toContain('Local');
   });
 
   it('refreshes the tree and the log after a log operation', async () => {

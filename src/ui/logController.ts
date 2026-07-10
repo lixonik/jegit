@@ -74,6 +74,9 @@ export class LogController {
       case 'openRevDiff':
         await this.openRevDiff(m.hash, m.parent, m.path);
         return true;
+      case 'openRevLocalDiff':
+        await this.openRevLocalDiff(m.hash, m.path);
+        return true;
       case 'copyHash':
         await vscode.env.clipboard.writeText(m.hash);
         vscode.window.showInformationMessage(`JeGit: copied ${m.hash.slice(0, 10)}`);
@@ -381,6 +384,12 @@ export class LogController {
     const name = rel.split('/').pop() ?? rel;
     const sh = (h: string) => (notEmpty(h) ? h.slice(0, 7) : '∅');
     await vscode.commands.executeCommand('vscode.diff', left, right, `${name} (${sh(parent)} <-> ${sh(hash)})`);
+  }
+
+  private async openRevLocalDiff(hash: string, rel: string): Promise<void> {
+    const left = vscode.Uri.from({ scheme: REV_SCHEME, path: '/' + rel, query: hash });
+    const name = rel.split('/').pop() ?? rel;
+    await vscode.commands.executeCommand('vscode.diff', left, this.repo.absUri(rel), `${name} (${hash.slice(0, 7)} <-> Local)`);
   }
 
   private rebaseScript(): string {
