@@ -1012,6 +1012,40 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'logPathFilter' });
   });
 
+  it('passes the sign-off flag and the author override to the commit', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [changeItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const msg = document.getElementById('message') as HTMLTextAreaElement;
+    msg.value = 'Signed commit';
+    msg.dispatchEvent(new Event('input', { bubbles: true }));
+    const signoff = document.getElementById('signoff') as HTMLInputElement;
+    signoff.checked = true;
+    const author = document.getElementById('author') as HTMLInputElement;
+    author.value = 'Dev <dev@example.com>';
+    const commit = document.getElementById('commit') as HTMLButtonElement;
+    if (commit.disabled) {
+      (document.querySelector('#tree input[type=checkbox]') as HTMLInputElement).click();
+    }
+    commit.click();
+    const call = posted.filter((p) => p.type === 'commit').at(-1) as {
+      signoff: boolean;
+      author: string;
+    };
+    expect(call.signoff).toBe(true);
+    expect(call.author).toBe('Dev <dev@example.com>');
+    signoff.checked = false;
+    author.value = '';
+    sendToWebview({ type: 'committed' });
+  });
+
   it('recalls a commit message and fills the box from the reply', () => {
     (document.getElementById('msg-history') as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(posted).toContainEqual({ type: 'recallMessage' });
