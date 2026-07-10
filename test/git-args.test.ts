@@ -227,4 +227,32 @@ describe('Git argument assembly', () => {
     await git.addIntentToAdd(['new.ts']);
     expect(git.calls).toEqual([['add', '-N', '--', 'new.ts']]);
   });
+
+  it('checks out one side of a conflicted file', async () => {
+    const git = new RecordingGit();
+    await git.checkoutSide('src/a.ts', 'ours');
+    await git.checkoutSide('src/a.ts', 'theirs');
+    expect(git.calls).toEqual([
+      ['checkout', '--ours', '--', 'src/a.ts'],
+      ['checkout', '--theirs', '--', 'src/a.ts'],
+    ]);
+  });
+
+  it('builds the line-range log query', async () => {
+    const git = new RecordingGit();
+    await git.logForLines('src/a.ts', 5, 10);
+    expect(git.calls).toEqual([['log', '-L', '5,10:src/a.ts']]);
+  });
+
+  it('pushes a branch to an explicit remote', async () => {
+    const git = new RecordingGit();
+    await git.pushBranch('fork', 'feature/x');
+    expect(git.calls).toEqual([['push', 'fork', 'feature/x']]);
+  });
+
+  it('deletes a branch on the remote', async () => {
+    const git = new RecordingGit();
+    await git.deleteRemoteBranch('origin', 'feature/x');
+    expect(git.calls).toEqual([['push', 'origin', '--delete', 'feature/x']]);
+  });
 });
