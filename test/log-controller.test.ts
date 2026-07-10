@@ -170,6 +170,14 @@ describe('LogController', () => {
     expect(info).toHaveBeenCalled();
   });
 
+  it('applies a path filter sent directly from the webview', async () => {
+    const { ctrl, git } = makeController();
+    await ctrl.handle({ type: 'setLogPath', path: 'src/app' } as Incoming);
+    expect(git.log).toHaveBeenLastCalledWith(400, '--all', 'src/app');
+    await ctrl.handle({ type: 'setLogPath', path: '' } as Incoming);
+    expect(git.log).toHaveBeenLastCalledWith(400, '--all', '');
+  });
+
   it('remembers the path filter for subsequent log queries', async () => {
     const { ctrl, git } = makeController();
     win.showInputBox = async () => 'src/app';

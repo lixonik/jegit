@@ -74,6 +74,7 @@ export type Incoming =
   | { type: 'createPatch'; items: { path: string; untracked: boolean }[] }
   | { type: 'copyPath'; path: string; absolute: boolean }
   | { type: 'setLogScope'; scope: string }
+  | { type: 'setLogPath'; path: string }
   | { type: 'compareCommits'; a: string; b: string }
   | { type: 'createPatchFromCommit'; hash: string }
   | { type: 'pushUpTo'; hash: string }

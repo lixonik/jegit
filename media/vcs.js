@@ -1191,6 +1191,7 @@
           { label: 'Show Diff with Local', cmd: () => vscode.postMessage({ type: 'openRevLocalDiff', hash, path: f.path }) },
           { label: 'Show History', cmd: () => vscode.postMessage({ type: 'fileHistory', path: f.path }) },
           { label: 'Open on Remote at This Revision', cmd: () => vscode.postMessage({ type: 'openRevFileRemote', hash, path: f.path }) },
+          { label: 'Filter Log by This Path', cmd: () => vscode.postMessage({ type: 'setLogPath', path: f.path }) },
           { label: 'Reveal in File Explorer', cmd: () => vscode.postMessage({ type: 'revealFile', path: f.path }) },
           { label: 'Copy Relative Path', cmd: () => vscode.postMessage({ type: 'copyPath', path: f.path, absolute: false }) },
           { label: 'Copy Path', cmd: () => vscode.postMessage({ type: 'copyPath', path: f.path, absolute: true }) },

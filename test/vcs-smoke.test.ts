@@ -1390,5 +1390,13 @@ describe('vcs.js webview smoke', () => {
     expect(reveal).toBeDefined();
     reveal.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(posted).toContainEqual({ type: 'revealFile', path: 'src/a.ts' });
+
+    fileRow.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const filter = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Filter Log by This Path',
+    ) as HTMLElement;
+    expect(filter).toBeDefined();
+    filter.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'setLogPath', path: 'src/a.ts' });
   });
 });

@@ -64,6 +64,11 @@ export class LogController {
       case 'logPathFilter':
         await this.pickPathFilter();
         return true;
+      case 'setLogPath':
+        this.logPath = m.path;
+        await this.postLog();
+        await this.postBranches();
+        return true;
       case 'commitDetails': {
         const [files, body, committer, branches, tags] = await Promise.all([
           this.repo.git.commitFiles(m.hash),
