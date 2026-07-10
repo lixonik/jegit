@@ -1197,7 +1197,7 @@
     }
     if (row) {
       row.click();
-      row.scrollIntoView({ block: 'center' });
+      if (row.scrollIntoView) row.scrollIntoView({ block: 'center' });
     }
   }
 

@@ -773,4 +773,25 @@ describe('vcs.js webview smoke', () => {
     expect(call.parent).toBe('a'.repeat(40));
     expect(call.path).toBe('src/a.ts');
   });
+
+  it('clears the commit form after a successful commit', () => {
+    const msg = document.getElementById('message') as HTMLTextAreaElement;
+    const amend = document.getElementById('amend') as HTMLInputElement;
+    msg.value = 'About to be committed';
+    amend.checked = true;
+    sendToWebview({ type: 'committed' });
+    expect(msg.value).toBe('');
+    expect(amend.checked).toBe(false);
+  });
+
+  it('reveals a commit by hash and focuses the log tab', () => {
+    const localTab = document.querySelector('.tab[data-tab="local"]') as HTMLElement;
+    localTab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    sendToWebview({ type: 'revealCommit', hash: 'a'.repeat(40) });
+    const logTab = document.querySelector('.tab[data-tab="log"]') as HTMLElement;
+    expect(logTab.classList.contains('active')).toBe(true);
+    const selected = document.querySelector('.log-row.selected') as HTMLElement;
+    expect(selected.dataset.hash).toBe('a'.repeat(40));
+  });
 });
