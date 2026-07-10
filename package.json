@@ -178,6 +178,12 @@
         "icon": "$(sync)"
       },
       {
+        "command": "jegit.fetchPrune",
+        "title": "Fetch All and Prune Remote Branches",
+        "category": "JeGit",
+        "icon": "$(sync)"
+      },
+      {
         "command": "jegit.continueOperation",
         "title": "Continue Merge/Rebase/Cherry-Pick",
         "category": "JeGit",

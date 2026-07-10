@@ -8,6 +8,7 @@ export function registerRemoteCommands(context: vscode.ExtensionContext, repo: R
     vscode.commands.registerCommand('jegit.push', () => pushFlow(repo)),
     vscode.commands.registerCommand('jegit.update', () => updateFlow(repo)),
     vscode.commands.registerCommand('jegit.fetch', () => fetchRemote(repo)),
+    vscode.commands.registerCommand('jegit.fetchPrune', () => fetchAndPrune(repo)),
     vscode.commands.registerCommand('jegit.pushForce', () => forcePush(repo)),
     vscode.commands.registerCommand('jegit.pushTags', () => pushTags(repo)),
     vscode.commands.registerCommand('jegit.resetToRemote', () => resetToRemote(repo)),
@@ -19,6 +20,17 @@ async function fetchRemote(repo: Repository): Promise<void> {
   try {
     await repo.git.fetch();
     vscode.window.showInformationMessage('JeGit: fetched.');
+  } catch (err) {
+    vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
+  } finally {
+    await repo.refresh();
+  }
+}
+
+async function fetchAndPrune(repo: Repository): Promise<void> {
+  try {
+    await repo.git.fetchPrune();
+    vscode.window.showInformationMessage('JeGit: fetched all remotes and pruned stale branches.');
   } catch (err) {
     vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
   } finally {

@@ -42,6 +42,14 @@ describe('remote commands', () => {
     win.showErrorMessage = async () => undefined;
   });
 
+  it('fetches all remotes with prune and refreshes', async () => {
+    const repo = makeRepo({ fetchPrune: vi.fn(async () => undefined) });
+    const handlers = register(repo);
+    await handlers['jegit.fetchPrune']();
+    expect(repo.git.fetchPrune).toHaveBeenCalled();
+    expect(repo.refresh).toHaveBeenCalled();
+  });
+
   it('refuses to force push without an upstream', async () => {
     const repo = makeRepo({ hasUpstream: vi.fn(async () => false) });
     const handlers = register(repo);

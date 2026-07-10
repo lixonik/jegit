@@ -132,6 +132,9 @@ export class Git {
   async pushBranch(remote: string, ref: string): Promise<void> {
     await this.raw(['push', remote, ref]);
   }
+  async fetchPrune(): Promise<void> {
+    await this.raw(['fetch', '--all', '--prune']);
+  }
   async deleteRemoteBranch(remote: string, branch: string): Promise<void> {
     await this.raw(['push', remote, '--delete', branch]);
   }

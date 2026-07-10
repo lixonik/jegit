@@ -255,4 +255,10 @@ describe('Git argument assembly', () => {
     await git.deleteRemoteBranch('origin', 'feature/x');
     expect(git.calls).toEqual([['push', 'origin', '--delete', 'feature/x']]);
   });
+
+  it('fetches all remotes with pruning', async () => {
+    const git = new RecordingGit();
+    await git.fetchPrune();
+    expect(git.calls).toEqual([['fetch', '--all', '--prune']]);
+  });
 });
