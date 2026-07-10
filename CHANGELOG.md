@@ -5,9 +5,13 @@
 ### Features
 - Commit message inspections (subject length, blank line before the body) with a "Commit Anyway" confirmation.
 - Annotate (git blame) colored by commit age.
-- Branches popup: Show Diff with Working Tree, Checkout and Rebase onto Current, and tag actions (Checkout / Delete Tag).
+- Branches popup: Show Diff with Working Tree, Checkout and Rebase onto Current, and tag actions (Checkout / New Branch from Tag / Delete Tag).
+- Compare with Current shows the ahead/behind commit lists before the changed files.
+- Push: choose the target remote for the first push when several remotes exist.
 - Stash: a changed-files preview before applying or dropping.
 - Log: search-match highlighting, branches and tags containing the selected commit in the details panel, and recalling a recent commit message.
+- Log: cherry-pick a ctrl-clicked pair oldest first, clickable ref chips that switch the log scope, arrow-key navigation over commits, and Show Diff with Local on a details file.
+- Context menus close on Escape.
 - Web links: an explicit ssh port is dropped from remote web URLs.
 
 ### Internal
