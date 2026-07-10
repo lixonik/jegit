@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { performBranchAction } from '../src/ui/branches';
+import { performBranchAction, showBranches } from '../src/ui/branches';
 import type { Repository } from '../src/model/repository';
 
 type AnyFn = (...args: unknown[]) => Promise<unknown>;
 const win = vscode.window as unknown as Record<string, AnyFn>;
+const cmd = vscode.commands as unknown as Record<string, AnyFn>;
 
 function makeRepo(gitOverrides: Record<string, unknown> = {}): Repository {
   return {
@@ -155,5 +156,50 @@ describe('performBranchAction', () => {
     await performBranchAction(repo, 'feature/x', 'main', false, 'checkoutRebase');
     expect(repo.git.checkout).toHaveBeenCalledWith('feature/x');
     expect(repo.git.rebaseOnto).toHaveBeenCalledWith('main');
+  });
+});
+
+describe('showBranches', () => {
+  function makePopupRepo() {
+    return makeRepo({
+      branches: vi.fn(async () => ({ current: 'main', locals: ['main'], remotes: [] })),
+      recentBranches: vi.fn(async () => []),
+      tag: { list: vi.fn(async () => []) },
+    });
+  }
+
+  beforeEach(() => {
+    win.showInputBox = async () => undefined;
+    win.showQuickPick = async () => undefined;
+    win.showInformationMessage = async () => undefined;
+    win.showErrorMessage = async () => undefined;
+    cmd.executeCommand = async () => undefined;
+  });
+
+  it('checks out a typed tag or revision detached', async () => {
+    const repo = makePopupRepo();
+    win.showQuickPick = async (items: unknown) =>
+      (items as { action?: string }[]).find((i) => i.action === 'checkoutRef');
+    win.showInputBox = async () => ' v1.2.0 ';
+    await showBranches(repo);
+    expect(repo.git.checkout).toHaveBeenCalledWith('v1.2.0');
+    expect(repo.refresh).toHaveBeenCalled();
+  });
+
+  it('creates a new branch from the current one', async () => {
+    const repo = makePopupRepo();
+    win.showQuickPick = async (items: unknown) => (items as { action?: string }[]).find((i) => i.action === 'new');
+    win.showInputBox = async () => 'feature/z';
+    await showBranches(repo);
+    expect(repo.git.checkoutNew).toHaveBeenCalledWith('feature/z', 'main');
+  });
+
+  it('delegates the cleanup entry to the command', async () => {
+    const repo = makePopupRepo();
+    const exec = vi.fn(async () => undefined);
+    cmd.executeCommand = exec;
+    win.showQuickPick = async (items: unknown) => (items as { action?: string }[]).find((i) => i.action === 'cleanup');
+    await showBranches(repo);
+    expect(exec).toHaveBeenCalledWith('jegit.cleanupBranches');
   });
 });
