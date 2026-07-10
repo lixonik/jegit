@@ -26,6 +26,7 @@
 - Log: the search, author and date filters survive a webview reload.
 - Status bar: the branch widget announces an in-progress merge/rebase/cherry-pick/revert.
 - Log: Open on Remote at This Revision on a details file; Copy Full Message in the commit menu.
+- Log details: the containing branches/tags switch the log scope on click; the author enables the User filter.
 - Commit: a warning before amending a commit that is already on the upstream.
 - Push: the `jegit.protectedBranches` setting (default `main`/`master`) makes the force-push warning name the protected branch.
 - Web links: an explicit ssh port is dropped from remote web URLs.
