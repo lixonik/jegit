@@ -1012,6 +1012,44 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'logPathFilter' });
   });
 
+  it('resolves and marks a conflicted file from its context menu', () => {
+    const conflictItem = {
+      path: 'src/c.ts',
+      status: 'UU',
+      statusLabel: 'Conflict',
+      letter: 'C',
+      untracked: false,
+      deleted: false,
+      conflicted: true,
+      fsPath: 'D:/repo/src/c.ts',
+    };
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [conflictItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const fileNode = [...document.querySelectorAll('#tree *')].find(
+      (el) => el.textContent === 'c.ts' || el.textContent?.trim() === 'c.ts',
+    ) as HTMLElement;
+    fileNode.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const menu = () => [...document.getElementById('ctxmenu')!.querySelectorAll('*')];
+    const resolve = menu().find((el) => el.textContent === 'Resolve in 3-pane Merge') as HTMLElement;
+    expect(resolve).toBeDefined();
+    resolve.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'mergeResolve', path: 'src/c.ts' });
+
+    fileNode.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const mark = menu().find((el) => el.textContent === 'Mark as Resolved') as HTMLElement;
+    expect(mark).toBeDefined();
+    mark.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'markResolved', paths: ['src/c.ts'] });
+  });
+
   it('reveals a file in the explorer from its context menu', () => {
     sendToWebview({
       type: 'state',
