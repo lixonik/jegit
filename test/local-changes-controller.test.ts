@@ -176,6 +176,14 @@ describe('LocalChangesController', () => {
     expect(exec).toHaveBeenCalledWith('vscode.open', { fsPath: 'Z:/nonexistent/src/a.ts' });
   });
 
+  it('reveals a file in the OS file explorer', async () => {
+    const exec = vi.fn(async () => undefined);
+    cmd.executeCommand = exec;
+    const { ctrl } = makeController();
+    await ctrl.handle({ type: 'revealFile', path: 'src/a.ts' } as Incoming);
+    expect(exec).toHaveBeenCalledWith('revealFileInOS', { fsPath: 'Z:/nonexistent/src/a.ts' });
+  });
+
   it('warns before amending a pushed commit', async () => {
     const repo = makeRepo();
     (repo.git as unknown as Record<string, unknown>).raw = vi.fn(async () => 'origin/main\n');

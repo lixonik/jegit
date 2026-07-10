@@ -63,6 +63,7 @@ export type Incoming =
   | { type: 'copyMessage'; hash: string }
   | { type: 'clearConsole' }
   | { type: 'openFile'; path: string }
+  | { type: 'revealFile'; path: string }
   | { type: 'mergeResolve'; path: string }
   | { type: 'markResolved'; paths: string[] }
   | { type: 'addToGitignore'; path: string }

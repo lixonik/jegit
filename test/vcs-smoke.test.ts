@@ -1012,6 +1012,29 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'logPathFilter' });
   });
 
+  it('reveals a file in the explorer from its context menu', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [changeItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const fileNode = [...document.querySelectorAll('#tree *')].find(
+      (el) => el.textContent === 'a.ts' || el.textContent?.trim() === 'a.ts',
+    ) as HTMLElement;
+    fileNode.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const item = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Reveal in File Explorer',
+    ) as HTMLElement;
+    expect(item).toBeDefined();
+    item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'revealFile', path: 'src/a.ts' });
+  });
+
   it('shows the filtered commit count while a filter is active', () => {
     const search = document.getElementById('log-search') as HTMLInputElement;
     const count = document.getElementById('log-count')!;

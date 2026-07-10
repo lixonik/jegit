@@ -56,6 +56,9 @@ export class LocalChangesController {
       case 'openFile':
         await vscode.commands.executeCommand('vscode.open', this.repo.absUri(m.path));
         return true;
+      case 'revealFile':
+        await vscode.commands.executeCommand('revealFileInOS', this.repo.absUri(m.path));
+        return true;
       case 'mergeResolve':
         await showMergeResolver(this.context, this.repo, m.path);
         return true;
