@@ -30,7 +30,8 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
   **Open on Remote at This Revision**).
 - Arrow-key navigation over commits; Ctrl-click marks a pair to **Compare
   Selected Versions** or **Cherry-Pick Selected (oldest first)**.
-- Filters: free text, **Branch**, **User**, **Date**, and **Path**.
+- Filters: free text, **Branch**, **User**, **Date**, and **Path**; the text,
+  user and date filters survive a reload.
 - Commit context menu: Checkout, New Branch, Cherry-Pick, Revert, Reset, Edit
   Commit Message (any commit), Undo Commit, Squash, Fixup, Drop, **Interactively
   Rebase from Here** (drag-reorder + pick/fixup/drop), New Tag, Copy Revision,
@@ -51,14 +52,14 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 - Console tab logging git commands, with a clear button.
 
 ### Branches and remotes
-- A status-bar widget (`branch ↓behind ↑ahead`) and the panel header open the
-  **Branches popup**: Checkout, New, Merge, Rebase, Rename, Delete, Compare,
-  **Show Diff with Working Tree**, **Set Upstream**, **Push a branch** to a
-  chosen remote, **Delete on Remote**.
-- **Fetch**, **Update** (fetch + pull), **Push** (with an outgoing-commit preview),
-  **Force Push** (`--force-with-lease`, with a stronger warning on branches from
-  `jegit.protectedBranches`), **Push Tags**, and **Manage Remotes** (add /
-  rename / change URL / remove).
+- A status-bar widget (`branch ↓behind ↑ahead`, plus an in-progress operation
+  warning) and the panel header open the **Branches popup**: Checkout, New,
+  Merge, Rebase, Rename, Delete, Compare, **Show Diff with Working Tree**,
+  **Set Upstream**, **Push a branch** to a chosen remote, **Delete on Remote**.
+- **Fetch**, **Fetch All and Prune**, **Update** (fetch + pull), **Push** (with
+  an outgoing-commit preview), **Force Push** (`--force-with-lease`, with a
+  stronger warning on branches from `jegit.protectedBranches`), **Push Tags**,
+  and **Manage Remotes** (add / rename / change URL / remove).
 
 ### Editor
 - **Annotate with Git Blame** (colored by commit age), **Show File History**
