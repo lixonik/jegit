@@ -85,6 +85,21 @@ describe('VersionControlView', () => {
     ]);
   });
 
+  it('caps the console buffer at 500 lines, dropping the oldest', async () => {
+    const repo = makeRepo();
+    const view = new VersionControlView({ extensionUri: {} } as never, repo);
+    const { webview, send } = resolve(view);
+    const log = repo.git.commandLogger as unknown as (line: string) => void;
+    for (let i = 1; i <= 505; i++) log(`command ${i}`);
+    await send({ type: 'requestConsole' });
+    const call = webview.postMessage.mock.calls.find(
+      (c) => (c[0] as { type: string }).type === 'consoleData',
+    )![0] as { lines: string[] };
+    expect(call.lines).toHaveLength(500);
+    expect(call.lines[0]).toBe('$ command 6');
+    expect(call.lines.at(-1)).toBe('$ command 505');
+  });
+
   it('collects git commands into the console and replays them on request', async () => {
     const repo = makeRepo();
     const view = new VersionControlView({ extensionUri: {} } as never, repo);
