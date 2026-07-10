@@ -85,6 +85,36 @@ describe('VersionControlView', () => {
     ]);
   });
 
+  it('answers ready with the current state payload', async () => {
+    const repo = makeRepo();
+    const view = new VersionControlView({ extensionUri: {} } as never, repo);
+    const { webview, send } = resolve(view);
+    await send({ type: 'ready' });
+    const state = webview.postMessage.mock.calls
+      .map((c) => c[0] as { type: string; payload?: { branch: string } })
+      .filter((m) => m.type === 'state')
+      .at(-1)!;
+    expect(state.payload!.branch).toBe('main');
+  });
+
+  it('refreshes the repository on the refresh message', async () => {
+    const repo = makeRepo();
+    const view = new VersionControlView({ extensionUri: {} } as never, repo);
+    const { send } = resolve(view);
+    const before = (repo.refresh as ReturnType<typeof vi.fn>).mock.calls.length;
+    await send({ type: 'refresh' });
+    expect((repo.refresh as ReturnType<typeof vi.fn>).mock.calls.length).toBeGreaterThan(before);
+  });
+
+  it('opens the branches popup via the jegit.branches command', async () => {
+    const exec = vi.fn(async () => undefined);
+    cmd.executeCommand = exec;
+    const view = new VersionControlView({ extensionUri: {} } as never, makeRepo());
+    const { send } = resolve(view);
+    await send({ type: 'branches' });
+    expect(exec).toHaveBeenCalledWith('jegit.branches');
+  });
+
   it('caps the console buffer at 500 lines, dropping the oldest', async () => {
     const repo = makeRepo();
     const view = new VersionControlView({ extensionUri: {} } as never, repo);
