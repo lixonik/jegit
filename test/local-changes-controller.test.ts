@@ -116,6 +116,66 @@ describe('LocalChangesController', () => {
     expect(repo.commit).toHaveBeenCalled();
   });
 
+  it('creates, renames and activates changelists from the prompts', async () => {
+    const { ctrl, repo } = makeController();
+    win.showInputBox = async () => '  Feature Y  ';
+    await ctrl.handle({ type: 'newChangelist' } as Incoming);
+    expect(repo.newChangelist).toHaveBeenCalledWith('Feature Y');
+
+    await ctrl.handle({ type: 'renameChangelist', id: 'cl2' } as Incoming);
+    expect(repo.rename).toHaveBeenCalledWith('cl2', 'Feature Y');
+
+    await ctrl.handle({ type: 'setActive', id: 'cl2' } as Incoming);
+    expect(repo.setActive).toHaveBeenCalledWith('cl2');
+  });
+
+  it('assigns dropped files straight to a changelist', async () => {
+    const { ctrl, repo } = makeController();
+    await ctrl.handle({ type: 'assignTo', paths: ['a.ts'], id: 'cl2' } as Incoming);
+    expect(repo.move).toHaveBeenCalledWith(['a.ts'], 'cl2');
+  });
+
+  it('marks conflicted files resolved by staging them', async () => {
+    const { ctrl, repo } = makeController();
+    await ctrl.handle({ type: 'markResolved', paths: ['a.ts'] } as Incoming);
+    expect(repo.git.add).toHaveBeenCalledWith(['a.ts']);
+    expect(repo.refresh).toHaveBeenCalled();
+  });
+
+  it('unstages only a non-empty selection', async () => {
+    const { ctrl, repo } = makeController();
+    await ctrl.handle({ type: 'unstage', paths: [] } as Incoming);
+    expect(repo.git.unstage).not.toHaveBeenCalled();
+    await ctrl.handle({ type: 'unstage', paths: ['a.ts'] } as Incoming);
+    expect(repo.git.unstage).toHaveBeenCalledWith(['a.ts']);
+  });
+
+  it('copies the relative or absolute path to the clipboard', async () => {
+    const writeText = vi.fn(async () => undefined);
+    (vscode.env.clipboard as { writeText: unknown }).writeText = writeText;
+    const { ctrl } = makeController();
+    await ctrl.handle({ type: 'copyPath', path: 'src/a.ts', absolute: false } as Incoming);
+    expect(writeText).toHaveBeenCalledWith('src/a.ts');
+    await ctrl.handle({ type: 'copyPath', path: 'src/a.ts', absolute: true } as Incoming);
+    expect(writeText).toHaveBeenLastCalledWith('Z:/nonexistent/src/a.ts');
+  });
+
+  it('replies to getLastCommitMessage with the HEAD body', async () => {
+    const repo = makeRepo();
+    (repo.git as unknown as Record<string, unknown>).commitBody = vi.fn(async () => 'last message');
+    const { ctrl, posts } = makeController(repo);
+    await ctrl.handle({ type: 'getLastCommitMessage' } as Incoming);
+    expect(posts).toContainEqual({ type: 'lastCommitMessage', message: 'last message' });
+  });
+
+  it('opens a file in the editor via vscode.open', async () => {
+    const exec = vi.fn(async () => undefined);
+    cmd.executeCommand = exec;
+    const { ctrl } = makeController();
+    await ctrl.handle({ type: 'openFile', path: 'src/a.ts' } as Incoming);
+    expect(exec).toHaveBeenCalledWith('vscode.open', { fsPath: 'Z:/nonexistent/src/a.ts' });
+  });
+
   it('warns before amending a pushed commit', async () => {
     const repo = makeRepo();
     (repo.git as unknown as Record<string, unknown>).raw = vi.fn(async () => 'origin/main\n');
