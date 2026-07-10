@@ -864,6 +864,41 @@ describe('vcs.js webview smoke', () => {
     expect(call.hash).toHaveLength(40);
   });
 
+  it('pushes a local branch and deletes a remote one from the branch panel menu', () => {
+    sendToWebview({
+      type: 'branchData',
+      current: 'main',
+      locals: ['main', 'feature/x'],
+      remotes: ['origin/main'],
+      outgoing: [],
+      scope: '--all',
+      logPath: '',
+    });
+    const panel = document.getElementById('log-branches')!;
+    const localRow = ([...panel.querySelectorAll('*')].find((el) => el.textContent === 'x') ??
+      [...panel.querySelectorAll('*')].find((el) => el.textContent === 'feature/x')) as HTMLElement;
+    localRow.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const push = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Push...',
+    ) as HTMLElement;
+    expect(push).toBeDefined();
+    push.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    let cmd = posted.filter((p) => p.type === 'branchCmd').at(-1) as { action: string; ref: string };
+    expect(cmd.action).toBe('push');
+    expect(cmd.ref).toBe('feature/x');
+
+    const remoteRow = [...panel.querySelectorAll('*')].filter((el) => el.textContent === 'main').at(-1) as HTMLElement;
+    remoteRow.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const del = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Delete on Remote...',
+    ) as HTMLElement;
+    expect(del).toBeDefined();
+    del.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    cmd = posted.filter((p) => p.type === 'branchCmd').at(-1) as { action: string; ref: string };
+    expect(cmd.action).toBe('deleteRemote');
+    expect(cmd.ref).toBe('origin/main');
+  });
+
   it('posts copyMessage from the commit context menu', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));

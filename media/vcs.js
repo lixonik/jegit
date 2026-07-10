@@ -884,11 +884,17 @@
           menu.push({ label: 'Rebase Current onto This', cmd: () => vscode.postMessage({ type: 'branchCmd', ref: b, action: 'rebase', isRemote: isRemote }) });
           menu.push({ label: 'Compare with Current', cmd: () => vscode.postMessage({ type: 'branchCmd', ref: b, action: 'compare', isRemote: isRemote }) });
         }
+        if (!isRemote) {
+          menu.push({ label: 'Push...', cmd: () => vscode.postMessage({ type: 'branchCmd', ref: b, action: 'push', isRemote: isRemote }) });
+        }
         if (!isRemote && b !== current) {
           menu.push({ label: 'Rename...', cmd: () => vscode.postMessage({ type: 'branchCmd', ref: b, action: 'rename', isRemote: isRemote }) });
           menu.push({ label: 'Delete', cmd: () => vscode.postMessage({ type: 'branchCmd', ref: b, action: 'delete', isRemote: isRemote }) });
         }
-        if (isRemote) menu.push({ label: 'Set as Upstream of Current', cmd: () => vscode.postMessage({ type: 'branchCmd', ref: b, action: 'setupstream', isRemote: isRemote }) });
+        if (isRemote) {
+          menu.push({ label: 'Set as Upstream of Current', cmd: () => vscode.postMessage({ type: 'branchCmd', ref: b, action: 'setupstream', isRemote: isRemote }) });
+          menu.push({ label: 'Delete on Remote...', cmd: () => vscode.postMessage({ type: 'branchCmd', ref: b, action: 'deleteRemote', isRemote: isRemote }) });
+        }
         showCtx(e, menu);
       });
       return row;
