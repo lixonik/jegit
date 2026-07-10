@@ -564,6 +564,30 @@ describe('vcs.js webview smoke', () => {
     expect(details).toContain('Fix the filter');
   });
 
+  it('filters the log rows by the picked author', () => {
+    sendToWebview({
+      type: 'logData',
+      commits: [
+        { hash: 'c'.repeat(40), parents: [], author: 'Dev One', email: 'a@e', date: '2026-07-09T12:00:00+03:00', subject: 'By one', refs: [] },
+        { hash: 'd'.repeat(40), parents: [], author: 'Dev Two', email: 'b@e', date: '2026-07-08T12:00:00+03:00', subject: 'By two', refs: [] },
+      ],
+    });
+    const user = document.getElementById('log-user') as HTMLSelectElement;
+    const options = [...user.options].map((o) => o.textContent);
+    expect(options).toContain('Dev One');
+    expect(options).toContain('Dev Two');
+
+    user.value = [...user.options].find((o) => o.textContent === 'Dev Two')!.value;
+    user.dispatchEvent(new Event('change', { bubbles: true }));
+    const rows = [...document.querySelectorAll('.log-row')];
+    expect(rows).toHaveLength(1);
+    expect(rows[0].textContent).toContain('By two');
+
+    user.value = '';
+    user.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(document.querySelectorAll('.log-row')).toHaveLength(2);
+  });
+
   it('opens the revision diff when a details file is clicked', () => {
     const fileRow = [...document.querySelectorAll('#log-details *')].find(
       (el) => el.textContent?.trim() === 'a.ts',
