@@ -566,6 +566,11 @@
       if (f.untracked) {
         menu.push({ label: 'Add to .gitignore', cmd: () => vscode.postMessage({ type: 'addToGitignore', path: f.path }) });
       }
+      if (!f.untracked) {
+        menu.push({ label: 'Show History', cmd: () => vscode.postMessage({ type: 'fileHistory', path: f.path }) });
+      }
+      menu.push({ label: 'Copy Relative Path', cmd: () => vscode.postMessage({ type: 'copyPath', path: f.path, absolute: false }) });
+      menu.push({ label: 'Copy Path', cmd: () => vscode.postMessage({ type: 'copyPath', path: f.path, absolute: true }) });
       menu.push({ label: 'Rollback...', cmd: () => vscode.postMessage({ type: 'rollback', items: [{ path: f.path, untracked: f.untracked }] }) });
       showCtx(e, menu);
     });

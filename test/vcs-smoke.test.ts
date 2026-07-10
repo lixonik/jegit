@@ -825,6 +825,33 @@ describe('vcs.js webview smoke', () => {
     expect(posted).toContainEqual({ type: 'unshelveFile', id: 's1', path: 'src/a.ts' });
   });
 
+  it('shows history and copies the path from the file context menu', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [changeItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const fileNode = [...document.querySelectorAll('#tree *')].find(
+      (el) => el.textContent === 'a.ts' || el.textContent?.trim() === 'a.ts',
+    ) as HTMLElement;
+    fileNode.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const menu = () => [...document.getElementById('ctxmenu')!.querySelectorAll('*')];
+    const history = menu().find((el) => el.textContent === 'Show History') as HTMLElement;
+    expect(history).toBeDefined();
+    history.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'fileHistory', path: 'src/a.ts' });
+
+    fileNode.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const copyRel = menu().find((el) => el.textContent === 'Copy Relative Path') as HTMLElement;
+    copyRel.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'copyPath', path: 'src/a.ts', absolute: false });
+  });
+
   it('posts browseAt from the commit context menu', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
