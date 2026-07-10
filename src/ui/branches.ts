@@ -79,6 +79,7 @@ async function branchActions(repo: Repository, ref: string, current: string, isR
   }
   if (isRemote) {
     actions.push({ label: `$(link) Set as Upstream of ${current}`, a: 'setupstream' });
+    actions.push({ label: '$(trash) Delete on Remote...', a: 'deleteRemote' });
   }
 
   const pick = await vscode.window.showQuickPick(actions, { placeHolder: ref });
@@ -217,6 +218,19 @@ export async function performBranchAction(
         const name = await vscode.window.showInputBox({ prompt: `Rename ${ref} to`, value: ref });
         if (!name) return;
         await repo.git.renameBranch(ref, name.trim());
+        break;
+      }
+      case 'deleteRemote': {
+        const cut = ref.indexOf('/');
+        const remote = ref.slice(0, cut);
+        const branch = ref.slice(cut + 1);
+        const ok = await vscode.window.showWarningMessage(
+          `Delete ${branch} on ${remote}? This removes the branch for everyone.`,
+          { modal: true },
+          'Delete on Remote',
+        );
+        if (ok !== 'Delete on Remote') return;
+        await repo.git.deleteRemoteBranch(remote, branch);
         break;
       }
       case 'delete': {

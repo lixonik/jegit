@@ -49,6 +49,16 @@ describe('performBranchAction', () => {
     expect(repo.git.checkout).toHaveBeenCalledWith('feature/x');
   });
 
+  it('deletes a remote branch only after the modal confirmation', async () => {
+    const repo = makeRepo({ deleteRemoteBranch: vi.fn(async () => undefined) });
+    await performBranchAction(repo, 'origin/feature/x', 'main', true, 'deleteRemote');
+    expect(repo.git.deleteRemoteBranch).not.toHaveBeenCalled();
+
+    win.showWarningMessage = async () => 'Delete on Remote';
+    await performBranchAction(repo, 'origin/feature/x', 'main', true, 'deleteRemote');
+    expect(repo.git.deleteRemoteBranch).toHaveBeenCalledWith('origin', 'feature/x');
+  });
+
   it('pushes a local branch to the single remote', async () => {
     const repo = makeRepo({
       pushBranch: vi.fn(async () => undefined),
