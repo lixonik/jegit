@@ -3,7 +3,7 @@
   // Persisted UI layout (pane widths, active tab, branch-group collapse), so the
   // Log layout survives reloads like a JetBrains tool window.
   const ui = Object.assign(
-    { branchesW: 0, detailsW: 0, tab: '', branchCollapsed: {}, branchDirCollapsed: {}, tabOrder: [] },
+    { branchesW: 0, detailsW: 0, tab: '', branchCollapsed: {}, branchDirCollapsed: {}, tabOrder: [], logFilters: {} },
     vscode.getState() || {},
   );
   function saveUi() {
@@ -191,9 +191,24 @@
   $('log-cherrypick').addEventListener('click', () => {
     if (selectedHash) vscode.postMessage({ type: 'cherryPick', hash: selectedHash });
   });
-  logSearch.addEventListener('input', renderLog);
-  logUser.addEventListener('change', renderLog);
-  logDate.addEventListener('change', renderLog);
+  function saveLogFilters() {
+    ui.logFilters = { text: logSearch.value, user: logUser.value, date: logDate.value };
+    saveUi();
+  }
+  logSearch.addEventListener('input', () => {
+    saveLogFilters();
+    renderLog();
+  });
+  logUser.addEventListener('change', () => {
+    saveLogFilters();
+    renderLog();
+  });
+  logDate.addEventListener('change', () => {
+    saveLogFilters();
+    renderLog();
+  });
+  if (ui.logFilters.text) logSearch.value = ui.logFilters.text;
+  if (ui.logFilters.date) logDate.value = ui.logFilters.date;
 
   // Clicking the branch label opens the Branches popup (like the JetBrains widget).
   branchLabel.addEventListener('click', () => vscode.postMessage({ type: 'branches' }));
@@ -806,6 +821,7 @@
       logUser.appendChild(o);
     }
     if (authors.includes(cur)) logUser.value = cur;
+    else if (ui.logFilters.user && authors.includes(ui.logFilters.user)) logUser.value = ui.logFilters.user;
   }
 
   // ---- Log: JetBrains-style left branches tree ----

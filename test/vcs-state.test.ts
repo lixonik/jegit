@@ -19,7 +19,7 @@ describe('vcs.js ui state persistence', () => {
   beforeAll(() => {
     (globalThis as Record<string, unknown>).acquireVsCodeApi = () => ({
       postMessage: () => undefined,
-      getState: () => ({ tab: 'log' }),
+      getState: () => ({ tab: 'log', logFilters: { text: 'fix', user: 'Dev', date: '7' } }),
       setState: (s: Record<string, unknown>) => savedStates.push(s),
     });
     document.body.innerHTML = bodyHtml();
@@ -41,5 +41,34 @@ describe('vcs.js ui state persistence', () => {
     const last = savedStates.at(-1);
     expect(last).toBeDefined();
     expect(last!.tab).toBe('shelf');
+  });
+
+  it('restores the persisted log filters on boot', () => {
+    expect((document.getElementById('log-search') as HTMLInputElement).value).toBe('fix');
+    expect((document.getElementById('log-date') as HTMLSelectElement).value).toBe('7');
+  });
+
+  it('restores the persisted author filter once the log data arrives', () => {
+    window.dispatchEvent(
+      new MessageEvent('message', {
+        data: {
+          type: 'logData',
+          commits: [
+            { hash: 'a'.repeat(40), parents: [], author: 'Dev', date: '2026-07-10T10:00:00+03:00', refs: [], subject: 'fix things' },
+          ],
+          outgoing: [],
+        },
+      }),
+    );
+    expect((document.getElementById('log-user') as HTMLSelectElement).value).toBe('Dev');
+  });
+
+  it('persists the log filters as the user edits them', () => {
+    const search = document.getElementById('log-search') as HTMLInputElement;
+    search.value = 'feature';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+    const last = savedStates.at(-1) as { logFilters?: { text: string } };
+    expect(last.logFilters).toBeDefined();
+    expect(last.logFilters!.text).toBe('feature');
   });
 });
