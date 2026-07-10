@@ -298,6 +298,54 @@ describe('LogController', () => {
     expect(open).not.toHaveBeenCalled();
   });
 
+  it('checks out a revision detached and reverts a commit', async () => {
+    const { ctrl, git } = makeController();
+    await ctrl.handle({ type: 'checkoutRev', hash: 'abc1234' } as Incoming);
+    expect(git.checkout).toHaveBeenCalledWith('abc1234');
+
+    const revert = vi.fn(async () => undefined);
+    const other = makeController(makeGit({ revert }));
+    await other.ctrl.handle({ type: 'revertCommit', hash: 'abc1234' } as Incoming);
+    expect(revert).toHaveBeenCalledWith('abc1234');
+  });
+
+  it('fixes a commit up into its parent via a rebase action', async () => {
+    const { ctrl, git } = makeController();
+    await ctrl.handle({ type: 'fixupCommit', hash: 'abc1234' } as Incoming);
+    expect(git.rebaseAction).toHaveBeenCalledWith('abc1234~2', 'abc1234', 'fixup', expect.any(String));
+  });
+
+  it('resets to a commit with the picked mode, guarding the hard reset', async () => {
+    const { ctrl, git } = makeController();
+    win.showQuickPick = async () => ({ label: 'Soft', mode: 'soft' });
+    await ctrl.handle({ type: 'resetTo', hash: 'abc1234' } as Incoming);
+    expect(git.reset).toHaveBeenCalledWith('abc1234', 'soft');
+
+    win.showQuickPick = async () => ({ label: 'Hard', mode: 'hard' });
+    await ctrl.handle({ type: 'resetTo', hash: 'abc1234' } as Incoming);
+    expect(git.reset).toHaveBeenCalledTimes(1);
+
+    win.showWarningMessage = async () => 'Reset';
+    await ctrl.handle({ type: 'resetTo', hash: 'abc1234' } as Incoming);
+    expect(git.reset).toHaveBeenLastCalledWith('abc1234', 'hard');
+  });
+
+  it('creates a tag at a commit from the prompts', async () => {
+    const { ctrl, git } = makeController();
+    const inputs = ['v2.0.0', 'release'];
+    win.showInputBox = async () => inputs.shift();
+    await ctrl.handle({ type: 'tagAt', hash: 'abc1234' } as Incoming);
+    expect(git.tag.create).toHaveBeenCalledWith('v2.0.0', 'abc1234', 'release');
+  });
+
+  it('copies the commit subject to the clipboard', async () => {
+    const writeText = vi.fn(async () => undefined);
+    (vscode.env.clipboard as { writeText: unknown }).writeText = writeText;
+    const { ctrl } = makeController();
+    await ctrl.handle({ type: 'copySubject', text: 'Fix the filter' } as Incoming);
+    expect(writeText).toHaveBeenCalledWith('Fix the filter');
+  });
+
   it('refreshes the tree and the log after a log operation', async () => {
     const { ctrl, git, repo, posts } = makeController();
     await ctrl.handle({ type: 'cherryPick', hash: 'abc' } as Incoming);
