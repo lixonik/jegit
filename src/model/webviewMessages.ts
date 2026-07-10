@@ -54,6 +54,7 @@ export type Incoming =
   | { type: 'unshelve'; id: string; keep?: boolean }
   | { type: 'deleteShelf'; id: string }
   | { type: 'renameShelf'; id: string }
+  | { type: 'shelfFileDiff'; id: string; path: string }
   | { type: 'openFile'; path: string }
   | { type: 'mergeResolve'; path: string }
   | { type: 'markResolved'; paths: string[] }

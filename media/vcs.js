@@ -1262,6 +1262,7 @@
           dir.className = 'fdir';
           dir.textContent = dirName(f);
           row.append(fi, fname, dir);
+          row.addEventListener('dblclick', () => vscode.postMessage({ type: 'shelfFileDiff', id: sh.id, path: f }));
           shelfList.appendChild(row);
         }
       }

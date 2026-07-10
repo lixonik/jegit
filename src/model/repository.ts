@@ -131,6 +131,14 @@ export class Repository implements vscode.Disposable {
     return this.shelf.list();
   }
 
+  shelfPatchText(id: string): string {
+    try {
+      return fs.readFileSync(this.shelf.patchPath(id), 'utf8');
+    } catch {
+      return '';
+    }
+  }
+
   /** Save the given files as a shelf patch and revert them in the working tree. */
   async shelve(name: string, items: { path: string; untracked: boolean }[]): Promise<void> {
     const tracked = items.filter((i) => !i.untracked).map((i) => i.path);

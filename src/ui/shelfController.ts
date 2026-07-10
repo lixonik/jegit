@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import type { Repository } from '../model/repository';
 import type { Incoming } from '../model/webviewMessages';
+import { patchSectionFor } from '../util/diff';
 import { isEmpty, isNil } from '../util/guards';
 
 export type PostMessage = (message: object) => void;
@@ -32,6 +33,9 @@ export class ShelfController {
         return true;
       case 'deleteShelf':
         await this.deleteShelf(m.id);
+        return true;
+      case 'shelfFileDiff':
+        await this.showFileDiff(m.id, m.path);
         return true;
       default:
         return false;
@@ -79,6 +83,16 @@ export class ShelfController {
     if (isNil(name) || isEmpty(name.trim())) return;
     await this.repo.renameShelf(id, name.trim());
     this.postShelf();
+  }
+
+  private async showFileDiff(id: string, rel: string): Promise<void> {
+    const section = patchSectionFor(this.repo.shelfPatchText(id), rel);
+    if (isEmpty(section.trim())) {
+      vscode.window.showInformationMessage('JeGit: no diff for that file in the shelf.');
+      return;
+    }
+    const doc = await vscode.workspace.openTextDocument({ content: section, language: 'diff' });
+    await vscode.window.showTextDocument(doc, { preview: true });
   }
 
   private async deleteShelf(id: string): Promise<void> {

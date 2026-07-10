@@ -794,4 +794,17 @@ describe('vcs.js webview smoke', () => {
     const selected = document.querySelector('.log-row.selected') as HTMLElement;
     expect(selected.dataset.hash).toBe('a'.repeat(40));
   });
+
+  it('posts shelfFileDiff when a shelved file is double-clicked', () => {
+    sendToWebview({
+      type: 'shelfData',
+      entries: [{ id: 's1', name: 'WIP dialogs', createdAt: '2026-07-09T12:00:00+03:00', files: ['src/a.ts'] }],
+    });
+    const fileRow = [...document.querySelectorAll('#shelf-list .tree-row')].find((el) =>
+      el.textContent?.includes('a.ts'),
+    ) as HTMLElement;
+    expect(fileRow).toBeDefined();
+    fileRow.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'shelfFileDiff', id: 's1', path: 'src/a.ts' });
+  });
 });

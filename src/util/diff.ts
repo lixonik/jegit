@@ -31,3 +31,17 @@ export function splitHunks(diff: string): { header: string; hunks: Hunk[] } {
 export function buildHunkPatch(header: string, hunks: Hunk[]): string {
   return header + '\n' + hunks.map((h) => h.lines.join('\n')).join('\n') + '\n';
 }
+
+/** Extract one file's section from a multi-file unified diff. */
+export function patchSectionFor(patch: string, rel: string): string {
+  const out: string[] = [];
+  let inSection = false;
+  for (const line of patch.split('\n')) {
+    if (line.startsWith('diff --git ')) {
+      if (inSection) break;
+      inSection = line.endsWith(' b/' + rel);
+    }
+    if (inSection) out.push(line);
+  }
+  return out.join('\n');
+}

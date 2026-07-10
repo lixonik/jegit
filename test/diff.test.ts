@@ -1,5 +1,38 @@
 import { describe, it, expect } from 'vitest';
-import { splitHunks } from '../src/util/diff';
+import { patchSectionFor, splitHunks } from '../src/util/diff';
+
+const multiFilePatch = [
+  'diff --git a/src/a.ts b/src/a.ts',
+  '--- a/src/a.ts',
+  '+++ b/src/a.ts',
+  '@@ -1 +1 @@',
+  '-old a',
+  '+new a',
+  'diff --git a/src/b.ts b/src/b.ts',
+  '--- a/src/b.ts',
+  '+++ b/src/b.ts',
+  '@@ -1 +1 @@',
+  '-old b',
+  '+new b',
+].join('\n');
+
+describe('patchSectionFor', () => {
+  it('extracts a section from the middle of the patch', () => {
+    const section = patchSectionFor(multiFilePatch, 'src/a.ts');
+    expect(section).toContain('+new a');
+    expect(section).not.toContain('src/b.ts');
+  });
+
+  it('extracts the last section up to the end of the patch', () => {
+    const section = patchSectionFor(multiFilePatch, 'src/b.ts');
+    expect(section.startsWith('diff --git a/src/b.ts')).toBe(true);
+    expect(section).toContain('+new b');
+  });
+
+  it('returns an empty string for a file that is not in the patch', () => {
+    expect(patchSectionFor(multiFilePatch, 'src/c.ts')).toBe('');
+  });
+});
 
 describe('splitHunks', () => {
   it('returns no hunks for an empty diff', () => {

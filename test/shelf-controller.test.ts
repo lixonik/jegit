@@ -15,6 +15,9 @@ function makeRepo(overrides: Record<string, unknown> = {}): Repository {
     unshelve: vi.fn(async () => 'ok'),
     renameShelf: vi.fn(async () => undefined),
     deleteShelf: vi.fn(async () => undefined),
+    shelfPatchText: vi.fn(
+      () => 'diff --git a/src/a.ts b/src/a.ts\n--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1 +1 @@\n-old\n+new',
+    ),
     ...overrides,
   } as unknown as Repository;
 }
@@ -114,5 +117,30 @@ describe('ShelfController', () => {
     win.showWarningMessage = async () => 'Delete';
     await ctrl.handle({ type: 'deleteShelf', id: 's1' } as Incoming);
     expect(repo.deleteShelf).toHaveBeenCalledWith('s1');
+  });
+
+  it('shows a shelved file diff as a diff document', async () => {
+    const shown: unknown[] = [];
+    win.showTextDocument = async (doc: unknown) => {
+      shown.push(doc);
+      return undefined;
+    };
+    const ctrl = new ShelfController(makeRepo(), post);
+    await ctrl.handle({ type: 'shelfFileDiff', id: 's1', path: 'src/a.ts' } as Incoming);
+    expect(shown[0]).toEqual({
+      content: 'diff --git a/src/a.ts b/src/a.ts\n--- a/src/a.ts\n+++ b/src/a.ts\n@@ -1 +1 @@\n-old\n+new',
+      language: 'diff',
+    });
+  });
+
+  it('reports when the shelf has no diff for the file', async () => {
+    const info = vi.fn(async () => undefined);
+    win.showInformationMessage = info;
+    const shown = vi.fn(async () => undefined);
+    win.showTextDocument = shown;
+    const ctrl = new ShelfController(makeRepo(), post);
+    await ctrl.handle({ type: 'shelfFileDiff', id: 's1', path: 'src/other.ts' } as Incoming);
+    expect(info).toHaveBeenCalled();
+    expect(shown).not.toHaveBeenCalled();
   });
 });
