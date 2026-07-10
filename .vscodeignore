@@ -9,3 +9,7 @@ tsconfig.json
 test/**
 vitest.config.*
 *.test.ts
+*.vsix
+.claude/**
+.gitattributes
+package-lock.json
