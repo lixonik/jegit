@@ -347,6 +347,45 @@ describe('vcs.js webview smoke', () => {
     expect(posted.filter((p) => p.type === 'openDiff' && p.path === 'src/conflict.ts')).toHaveLength(0);
   });
 
+  it('drags a file onto another changelist to reassign it', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [
+          { id: 'default', name: 'Changes', active: true, files: [changeItem] },
+          { id: 'cl2', name: 'Feature X', active: false, files: [] },
+        ],
+      },
+      operation: null,
+      staging: null,
+    });
+    const store: Record<string, string> = {};
+    const dataTransfer = {
+      setData: (k: string, v: string) => {
+        store[k] = v;
+      },
+      getData: (k: string) => store[k] ?? '',
+      effectAllowed: '',
+    };
+    const dragEvent = (type: string) => {
+      const e = new Event(type, { bubbles: true, cancelable: true });
+      Object.defineProperty(e, 'dataTransfer', { value: dataTransfer });
+      return e;
+    };
+    const tree = document.getElementById('tree')!;
+    const fileRow = ([...tree.querySelectorAll('.tree-row')] as HTMLElement[]).find((r) =>
+      r.textContent?.includes('a.ts'),
+    )!;
+    fileRow.dispatchEvent(dragEvent('dragstart'));
+    expect(store['text/plain']).toBe('src/a.ts');
+
+    const target = [...tree.querySelectorAll('*')].find((el) => el.textContent?.trim() === 'Feature X') as HTMLElement;
+    target.dispatchEvent(dragEvent('drop'));
+    expect(posted).toContainEqual({ type: 'assignTo', paths: ['src/a.ts'], id: 'cl2' });
+  });
+
   it('renders the log graph rows from logData', () => {
     sendToWebview({
       type: 'logData',
