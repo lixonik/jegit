@@ -939,6 +939,34 @@ describe('vcs.js webview smoke', () => {
     expect(call.hash).toHaveLength(40);
   });
 
+  it('posts the destructive commit actions with the right hash', () => {
+    const row = document.querySelector('.log-row') as HTMLElement;
+    const hash = row.dataset.hash!;
+    const clickMenuItem = (label: string) => {
+      row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+      const item = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+        (el) => el.textContent === label,
+      ) as HTMLElement;
+      expect(item).toBeDefined();
+      item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    };
+    clickMenuItem('Undo Commit');
+    expect(posted).toContainEqual({ type: 'undoCommit', hash });
+    clickMenuItem('Drop Commit');
+    expect(posted).toContainEqual({ type: 'dropCommit', hash });
+    clickMenuItem('Edit Commit Message...');
+    expect(posted).toContainEqual({ type: 'editMessage', hash });
+    clickMenuItem('Reset Current Branch to Here...');
+    expect(posted).toContainEqual({ type: 'resetTo', hash });
+  });
+
+  it('requests the branch and path filters from the log toolbar', () => {
+    (document.getElementById('log-branch') as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'logBranchFilter' });
+    (document.getElementById('log-path') as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'logPathFilter' });
+  });
+
   it('opens a details file on the remote from its context menu', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
