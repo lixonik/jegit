@@ -25,6 +25,9 @@ export class ShelfController {
       case 'shelve':
         await this.shelve(m.items);
         return true;
+      case 'shelveSilently':
+        await this.shelveSilently(m.items);
+        return true;
       case 'unshelve':
         await this.unshelve(m.id, !!m.keep);
         return true;
@@ -60,6 +63,21 @@ export class ShelfController {
       await this.repo.shelve(name.trim() || def, items);
       this.postShelf();
       vscode.window.showInformationMessage(`JeGit: shelved ${items.length} file(s).`);
+    } catch (err) {
+      vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  private async shelveSilently(items: { path: string; untracked: boolean }[]): Promise<void> {
+    if (isNil(items) || isEmpty(items)) {
+      vscode.window.showWarningMessage('JeGit: select files to shelve.');
+      return;
+    }
+    const name = this.repo.store.getChangelist(this.repo.store.activeId)?.name ?? 'Shelved changes';
+    try {
+      await this.repo.shelve(name, items);
+      this.postShelf();
+      vscode.window.showInformationMessage(`JeGit: shelved ${items.length} file(s) as "${name}".`);
     } catch (err) {
       vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
     }

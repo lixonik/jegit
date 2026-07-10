@@ -119,6 +119,27 @@ describe('ShelfController', () => {
     expect(repo.deleteShelf).toHaveBeenCalledWith('s1');
   });
 
+  it('shelves silently under the active changelist name without a prompt', async () => {
+    const repo = makeRepo();
+    const input = vi.fn(async () => undefined);
+    win.showInputBox = input;
+    const ctrl = new ShelfController(repo, post);
+    await ctrl.handle({ type: 'shelveSilently', items: oneFile } as Incoming);
+    expect(input).not.toHaveBeenCalled();
+    expect(repo.shelve).toHaveBeenCalledWith('Feature X', oneFile);
+    expect(posts).toContainEqual({ type: 'shelfData', entries: [{ id: 's1', name: 'Shelf 1' }] });
+  });
+
+  it('warns when shelving silently with an empty selection', async () => {
+    const repo = makeRepo();
+    const warn = vi.fn(async () => undefined);
+    win.showWarningMessage = warn;
+    const ctrl = new ShelfController(repo, post);
+    await ctrl.handle({ type: 'shelveSilently', items: [] } as Incoming);
+    expect(warn).toHaveBeenCalled();
+    expect(repo.shelve).not.toHaveBeenCalled();
+  });
+
   it('unshelves a single file and reposts the shelf', async () => {
     const repo = makeRepo({ unshelveFile: vi.fn(async () => 'clean') });
     const info = vi.fn(async () => undefined);

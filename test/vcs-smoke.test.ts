@@ -939,6 +939,29 @@ describe('vcs.js webview smoke', () => {
     expect(call.hash).toHaveLength(40);
   });
 
+  it('shelves a file silently from its context menu', () => {
+    sendToWebview({
+      type: 'state',
+      payload: {
+        branch: 'main',
+        total: 1,
+        changelists: [{ id: 'default', name: 'Changes', active: true, files: [changeItem] }],
+      },
+      operation: null,
+      staging: null,
+    });
+    const fileNode = [...document.querySelectorAll('#tree *')].find(
+      (el) => el.textContent === 'a.ts' || el.textContent?.trim() === 'a.ts',
+    ) as HTMLElement;
+    fileNode.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const item = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Shelve Silently',
+    ) as HTMLElement;
+    expect(item).toBeDefined();
+    item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'shelveSilently', items: [{ path: 'src/a.ts', untracked: false }] });
+  });
+
   it('posts the destructive commit actions with the right hash', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     const hash = row.dataset.hash!;

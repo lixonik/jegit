@@ -579,6 +579,7 @@
         menu.push({ label: 'Move to Another Changelist...', cmd: () => vscode.postMessage({ type: 'move', paths: [f.path] }) });
       }
       menu.push({ label: 'Shelve...', cmd: () => vscode.postMessage({ type: 'shelve', items: [{ path: f.path, untracked: f.untracked }] }) });
+      menu.push({ label: 'Shelve Silently', cmd: () => vscode.postMessage({ type: 'shelveSilently', items: [{ path: f.path, untracked: f.untracked }] }) });
       if (f.untracked) {
         menu.push({ label: 'Add to .gitignore', cmd: () => vscode.postMessage({ type: 'addToGitignore', path: f.path }) });
       }

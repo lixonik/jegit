@@ -51,6 +51,7 @@ export type Incoming =
       hash: string;
     }
   | { type: 'shelve'; items: { path: string; untracked: boolean }[] }
+  | { type: 'shelveSilently'; items: { path: string; untracked: boolean }[] }
   | { type: 'unshelve'; id: string; keep?: boolean }
   | { type: 'deleteShelf'; id: string }
   | { type: 'renameShelf'; id: string }
