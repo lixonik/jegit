@@ -18,14 +18,15 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
   **Sign-off**, **commit as another author**, and per-hunk **Commit Selected Hunks**.
 - **Commit message inspections** (subject length, blank line before the body)
   with a JetBrains-style "Commit Anyway" confirmation.
-- **Rollback**, **Shelve**, **Create Patch**, **Add to .gitignore**; click a file
-  for a HEAD diff.
+- **Rollback**, **Shelve**, **Create Patch**, **Add to .gitignore**, **Show
+  History**, **Copy Path**; click a file for a HEAD diff.
 - `Ctrl+Enter` commits, `Ctrl+Shift+Enter` commits and pushes.
 
 ### Log
 - Commit graph with clickable ref chips (switch the log to a branch or tag),
   Subject / Author / Date columns, and a details panel on the right showing
-  the changed files as a tree (click to diff, or **Show Diff with Local**).
+  the changed files as a tree (click to diff, **Show Diff with Local**, or
+  **Open on Remote at This Revision**).
 - Arrow-key navigation over commits; Ctrl-click marks a pair to **Compare
   Selected Versions** or **Cherry-Pick Selected (oldest first)**.
 - Filters: free text, **Branch**, **User**, **Date**, and **Path**.
@@ -51,7 +52,8 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 ### Branches and remotes
 - A status-bar widget (`branch ↓behind ↑ahead`) and the panel header open the
   **Branches popup**: Checkout, New, Merge, Rebase, Rename, Delete, Compare,
-  **Show Diff with Working Tree**, **Set Upstream**.
+  **Show Diff with Working Tree**, **Set Upstream**, **Push a branch** to a
+  chosen remote, **Delete on Remote**.
 - **Fetch**, **Update** (fetch + pull), **Push** (with an outgoing-commit preview),
   **Force Push**, **Push Tags**, and **Manage Remotes** (add / rename / change
   URL / remove).

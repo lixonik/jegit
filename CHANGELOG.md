@@ -18,6 +18,9 @@
 - Shelf: per-file Show Diff (double click) and Unshelve This File (shelf kept).
 - Log: Browse Repository at This Revision in the commit context menu.
 - File History: Compare with Local alongside Show Diff and Restore.
+- Local Changes: Show History and Copy Path in the file context menu.
+- Branches: push a local branch to a chosen remote; delete a remote branch after confirmation.
+- Log: Open on Remote at This Revision on a details file.
 - Web links: an explicit ssh port is dropped from remote web URLs.
 
 ### Internal
