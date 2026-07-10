@@ -109,4 +109,19 @@ describe('VersionControlView', () => {
     await send({ type: 'requestConsole' });
     expect(webview.postMessage).toHaveBeenCalledWith({ type: 'consoleData', lines: ['$ status --porcelain'] });
   });
+
+  it('clears the console buffer on demand', async () => {
+    const repo = makeRepo();
+    const view = new VersionControlView({ extensionUri: {} } as never, repo);
+    const { webview, send } = resolve(view);
+    (repo.git.commandLogger as unknown as (line: string) => void)('status');
+    await send({ type: 'clearConsole' });
+    expect(webview.postMessage).toHaveBeenCalledWith({ type: 'consoleData', lines: [] });
+    await send({ type: 'requestConsole' });
+    const replay = webview.postMessage.mock.calls
+      .map((c) => c[0] as { type: string; lines?: string[] })
+      .filter((m) => m.type === 'consoleData')
+      .at(-1)!;
+    expect(replay.lines).toEqual([]);
+  });
 });

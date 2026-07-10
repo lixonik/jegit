@@ -159,6 +159,7 @@
     if (items.length) vscode.postMessage({ type: 'shelve', items });
   });
   $('shelf-refresh').addEventListener('click', () => vscode.postMessage({ type: 'requestShelf' }));
+  $('console-clear').addEventListener('click', () => vscode.postMessage({ type: 'clearConsole' }));
   $('tb-group').addEventListener('click', () => {
     groupByDir = !groupByDir;
     const i = document.querySelector('#tb-group .codicon');

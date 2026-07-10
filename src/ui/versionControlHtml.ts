@@ -97,7 +97,12 @@ export function renderVersionControlHtml(webview: vscode.Webview, extensionUri: 
     </div>
     <div class="tree" id="shelf-list"></div>
   </div>
-  <div class="tabpanel" data-tab="console"><div class="console" id="console-log"></div></div>
+  <div class="tabpanel" data-tab="console">
+    <div class="toolbar">
+      <button class="tool" id="console-clear" title="Clear the console"><i class="codicon codicon-clear-all"></i></button>
+    </div>
+    <div class="console" id="console-log"></div>
+  </div>
 
   <div class="ctx-menu" id="ctxmenu"></div>
   <script nonce="${nonce}" src="${graphUri}"></script>

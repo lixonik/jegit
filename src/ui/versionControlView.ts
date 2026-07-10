@@ -80,6 +80,10 @@ export class VersionControlView implements vscode.WebviewViewProvider {
       case 'requestConsole':
         this.view?.webview.postMessage({ type: 'consoleData', lines: this.consoleLog });
         break;
+      case 'clearConsole':
+        this.consoleLog.length = 0;
+        this.view?.webview.postMessage({ type: 'consoleData', lines: [] });
+        break;
       case 'opAction': {
         const cmd =
           m.action === 'continue'

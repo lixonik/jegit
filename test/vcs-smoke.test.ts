@@ -899,6 +899,17 @@ describe('vcs.js webview smoke', () => {
     expect(cmd.ref).toBe('origin/main');
   });
 
+  it('clears the console from its toolbar', () => {
+    sendToWebview({ type: 'consoleData', lines: ['$ status'] });
+    const consoleEl = document.getElementById('console-log')!;
+    expect(consoleEl.textContent).toContain('$ status');
+    const clear = document.getElementById('console-clear') as HTMLElement;
+    clear.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'clearConsole' });
+    sendToWebview({ type: 'consoleData', lines: [] });
+    expect(consoleEl.textContent).toBe('');
+  });
+
   it('posts copyMessage from the commit context menu', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
