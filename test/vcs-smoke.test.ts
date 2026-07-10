@@ -864,6 +864,28 @@ describe('vcs.js webview smoke', () => {
     expect(call.hash).toHaveLength(40);
   });
 
+  it('copies a branch name from the branch panel menu', () => {
+    sendToWebview({
+      type: 'branchData',
+      current: 'main',
+      locals: ['main', 'feature/x'],
+      remotes: [],
+      outgoing: [],
+      scope: '--all',
+      logPath: '',
+    });
+    const panel = document.getElementById('log-branches')!;
+    const row = ([...panel.querySelectorAll('*')].find((el) => el.textContent === 'x') ??
+      [...panel.querySelectorAll('*')].find((el) => el.textContent === 'feature/x')) as HTMLElement;
+    row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const item = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Copy Branch Name',
+    ) as HTMLElement;
+    expect(item).toBeDefined();
+    item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'copyText', text: 'feature/x' });
+  });
+
   it('pushes a local branch and deletes a remote one from the branch panel menu', () => {
     sendToWebview({
       type: 'branchData',

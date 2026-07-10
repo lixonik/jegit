@@ -338,6 +338,14 @@ describe('LogController', () => {
     expect(git.tag.create).toHaveBeenCalledWith('v2.0.0', 'abc1234', 'release');
   });
 
+  it('copies arbitrary text to the clipboard', async () => {
+    const writeText = vi.fn(async () => undefined);
+    (vscode.env.clipboard as { writeText: unknown }).writeText = writeText;
+    const { ctrl } = makeController();
+    await ctrl.handle({ type: 'copyText', text: 'feature/x' } as Incoming);
+    expect(writeText).toHaveBeenCalledWith('feature/x');
+  });
+
   it('copies the commit subject to the clipboard', async () => {
     const writeText = vi.fn(async () => undefined);
     (vscode.env.clipboard as { writeText: unknown }).writeText = writeText;

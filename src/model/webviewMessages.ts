@@ -61,6 +61,7 @@ export type Incoming =
   | { type: 'browseAt'; hash: string }
   | { type: 'openRevFileRemote'; hash: string; path: string }
   | { type: 'copyMessage'; hash: string }
+  | { type: 'copyText'; text: string }
   | { type: 'clearConsole' }
   | { type: 'openFile'; path: string }
   | { type: 'revealFile'; path: string }

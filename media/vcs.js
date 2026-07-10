@@ -946,7 +946,10 @@
       row.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const menu = [{ label: 'Show Log for This Branch', cmd: () => vscode.postMessage({ type: 'setLogScope', scope: b }) }];
+        const menu = [
+          { label: 'Show Log for This Branch', cmd: () => vscode.postMessage({ type: 'setLogScope', scope: b }) },
+          { label: 'Copy Branch Name', cmd: () => vscode.postMessage({ type: 'copyText', text: b }) },
+        ];
         if (b !== current) menu.push({ label: 'Checkout', cmd: () => vscode.postMessage({ type: 'branchCmd', ref: b, action: 'checkout', isRemote: isRemote }) });
         menu.push({ label: 'New Branch from Here...', cmd: () => vscode.postMessage({ type: 'branchCmd', ref: b, action: 'newfrom', isRemote: isRemote }) });
         if (b !== current) {

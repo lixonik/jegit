@@ -92,6 +92,10 @@ export class LogController {
         await vscode.env.clipboard.writeText(m.text);
         vscode.window.showInformationMessage('JeGit: commit subject copied to clipboard.');
         return true;
+      case 'copyText':
+        await vscode.env.clipboard.writeText(m.text);
+        vscode.window.showInformationMessage(`JeGit: copied "${m.text}".`);
+        return true;
       case 'copyMessage': {
         const body = await this.repo.git.commitBody(m.hash).catch(() => '');
         if (isEmpty(body.trim())) {
