@@ -234,6 +234,21 @@ describe('showBranches', () => {
     expect(repo.git.checkoutNew).toHaveBeenCalledWith('release/1.0', 'v1.0');
   });
 
+  it('routes a picked branch into its actions menu', async () => {
+    const repo = makeRepo({
+      branches: vi.fn(async () => ({ current: 'main', locals: ['main', 'feature/x'], remotes: [] })),
+      recentBranches: vi.fn(async () => []),
+      tag: { list: vi.fn(async () => []) },
+    });
+    const picks = [
+      async (items: unknown) => (items as { ref?: string }[]).find((i) => i.ref === 'feature/x'),
+      async (items: unknown) => (items as { a?: string }[]).find((i) => i.a === 'checkout'),
+    ];
+    win.showQuickPick = ((items: unknown) => picks.shift()!(items)) as AnyFn;
+    await showBranches(repo);
+    expect(repo.git.checkout).toHaveBeenCalledWith('feature/x');
+  });
+
   it('deletes a picked tag only after confirmation', async () => {
     const repo = makeTagRepo();
     pickTagThen('delete');
