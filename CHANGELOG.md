@@ -15,11 +15,12 @@
 - Merge resolver: after applying, the next conflicted file is offered until the queue is empty.
 - Resolve Conflicts: Accept Yours / Accept Theirs per file alongside the merge resolver; the list reopens until every conflict is done.
 - Show History for Selection: `git log -L` over the selected lines, shown as a diff document.
-- Shelf: per-file Show Diff (double click) and Unshelve This File (shelf kept).
+- Shelf: per-file Show Diff (double click) and Unshelve This File (shelf kept); Show Patch for the whole shelf.
 - Log: Browse Repository at This Revision in the commit context menu.
 - File History: Compare with Local alongside Show Diff and Restore.
 - Local Changes: Show History and Copy Path in the file context menu.
-- Branches: push a local branch to a chosen remote; delete a remote branch after confirmation.
+- Branches: push a local branch to a chosen remote; delete a remote branch after confirmation (both also in the Log branch panel menu).
+- Console: a clear button.
 - Log: Open on Remote at This Revision on a details file; Copy Full Message in the commit menu.
 - Commit: a warning before amending a commit that is already on the upstream.
 - Push: the `jegit.protectedBranches` setting (default `main`/`master`) makes the force-push warning name the protected branch.
