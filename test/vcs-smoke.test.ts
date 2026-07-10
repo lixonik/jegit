@@ -289,9 +289,17 @@ describe('vcs.js webview smoke', () => {
 
     send('rebase');
     expect(buttons()).toEqual(['Continue', 'Skip', 'Abort']);
-    const skip = [...banner().querySelectorAll('button')].find((b) => b.textContent === 'Skip')!;
-    skip.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const click = (label: string) =>
+      [...banner().querySelectorAll('button')]
+        .find((b) => b.textContent === label)!
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    click('Skip');
     expect(posted).toContainEqual({ type: 'opAction', action: 'skip' });
+    click('Continue');
+    expect(posted).toContainEqual({ type: 'opAction', action: 'continue' });
+    click('Abort');
+    expect(posted).toContainEqual({ type: 'opAction', action: 'abort' });
+    send('');
   });
 
   it('renders staging groups and stages a file from its menu', () => {
