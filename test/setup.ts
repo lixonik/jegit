@@ -13,5 +13,6 @@ beforeEach(() => {
   (window as Record<string, unknown>).activeTextEditor = undefined;
   commands.executeCommand = async () => undefined;
   env.clipboard.writeText = async () => undefined;
+  env.clipboard.readText = async () => '';
   env.openExternal = async () => true;
 });

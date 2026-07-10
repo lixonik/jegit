@@ -41,7 +41,10 @@ export const commands: Record<string, (...args: unknown[]) => Promise<unknown>> 
 };
 
 export const env = {
-  clipboard: { writeText: async (_text: string): Promise<void> => undefined },
+  clipboard: {
+    writeText: async (_text: string): Promise<void> => undefined,
+    readText: async (): Promise<string> => '',
+  },
   openExternal: async (_uri: unknown): Promise<boolean> => true,
 };
 
