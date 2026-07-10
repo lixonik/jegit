@@ -864,6 +864,27 @@ describe('vcs.js webview smoke', () => {
     expect(call.hash).toHaveLength(40);
   });
 
+  it('reorders the tabs with drag and drop', () => {
+    const bar = document.querySelector('.tabbar')!;
+    const order = () => [...bar.querySelectorAll('.tab')].map((t) => t.getAttribute('data-tab'));
+    const initial = order();
+    expect(initial.indexOf('local')).toBeLessThan(initial.indexOf('shelf'));
+
+    const shelf = bar.querySelector('.tab[data-tab="shelf"]') as HTMLElement;
+    const local = bar.querySelector('.tab[data-tab="local"]') as HTMLElement;
+    shelf.dispatchEvent(new MouseEvent('dragstart', { bubbles: true }));
+    local.dispatchEvent(new MouseEvent('drop', { bubbles: true }));
+    shelf.dispatchEvent(new MouseEvent('dragend', { bubbles: true }));
+    const after = order();
+    expect(after.indexOf('shelf')).toBeLessThan(after.indexOf('local'));
+
+    const log = bar.querySelector('.tab[data-tab="log"]') as HTMLElement;
+    shelf.dispatchEvent(new MouseEvent('dragstart', { bubbles: true }));
+    log.dispatchEvent(new MouseEvent('drop', { bubbles: true }));
+    shelf.dispatchEvent(new MouseEvent('dragend', { bubbles: true }));
+    expect(order()).toEqual(initial);
+  });
+
   it('scopes the log to HEAD or all branches from the panel rows', () => {
     sendToWebview({
       type: 'branchData',
