@@ -31,7 +31,8 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 - Filters: free text, **Branch**, **User**, **Date**, and **Path**.
 - Commit context menu: Checkout, New Branch, Cherry-Pick, Revert, Reset, Edit
   Commit Message (any commit), Undo Commit, Squash, Fixup, Drop, **Interactively
-  Rebase from Here** (drag-reorder + pick/fixup/drop), New Tag, Copy Revision.
+  Rebase from Here** (drag-reorder + pick/fixup/drop), New Tag, Copy Revision,
+  **Browse Repository at This Revision**.
 
 ### Conflicts
 - A **three-pane merge resolver** (Yours | editable Result | Theirs) with
@@ -43,6 +44,8 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 
 ### Shelf and Console
 - Shelve / Unshelve patches that survive branch switches.
+- Per-file actions on a shelved change: **Show Diff** (double click) and
+  **Unshelve This File** (the shelf is kept).
 - Console tab logging git commands.
 
 ### Branches and remotes
@@ -55,9 +58,10 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 
 ### Editor
 - **Annotate with Git Blame** (colored by commit age), **Show File History**
-  (with restore to a revision), **Show History for Selection** (`git log -L`
-  for the selected lines), **Apply Patch** (from a file or the clipboard),
-  **Stash / Unstash** (with a changed-files preview), and **Copy Path**.
+  (diff against the parent, **Compare with Local**, restore to a revision),
+  **Show History for Selection** (`git log -L` for the selected lines),
+  **Apply Patch** (from a file or the clipboard), **Stash / Unstash** (with a
+  changed-files preview), and **Copy Path**.
 
 ## Development
 
