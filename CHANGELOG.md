@@ -20,7 +20,9 @@
 - File History: Compare with Local alongside Show Diff and Restore.
 - Local Changes: Show History and Copy Path in the file context menu.
 - Branches: push a local branch to a chosen remote; delete a remote branch after confirmation.
-- Log: Open on Remote at This Revision on a details file.
+- Log: Open on Remote at This Revision on a details file; Copy Full Message in the commit menu.
+- Commit: a warning before amending a commit that is already on the upstream.
+- Push: the `jegit.protectedBranches` setting (default `main`/`master`) makes the force-push warning name the protected branch.
 - Web links: an explicit ssh port is dropped from remote web URLs.
 
 ### Internal

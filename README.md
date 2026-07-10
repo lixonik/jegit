@@ -17,7 +17,8 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 - **Commit** the checked files, **Commit and Push**, **Amend** (prefilled),
   **Sign-off**, **commit as another author**, and per-hunk **Commit Selected Hunks**.
 - **Commit message inspections** (subject length, blank line before the body)
-  with a JetBrains-style "Commit Anyway" confirmation.
+  with a JetBrains-style "Commit Anyway" confirmation, and a warning before
+  **amending an already pushed commit**.
 - **Rollback**, **Shelve**, **Create Patch**, **Add to .gitignore**, **Show
   History**, **Copy Path**; click a file for a HEAD diff.
 - `Ctrl+Enter` commits, `Ctrl+Shift+Enter` commits and pushes.
@@ -33,7 +34,7 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 - Commit context menu: Checkout, New Branch, Cherry-Pick, Revert, Reset, Edit
   Commit Message (any commit), Undo Commit, Squash, Fixup, Drop, **Interactively
   Rebase from Here** (drag-reorder + pick/fixup/drop), New Tag, Copy Revision,
-  **Browse Repository at This Revision**.
+  **Copy Full Message**, **Browse Repository at This Revision**.
 
 ### Conflicts
 - A **three-pane merge resolver** (Yours | editable Result | Theirs) with
@@ -55,8 +56,9 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
   **Show Diff with Working Tree**, **Set Upstream**, **Push a branch** to a
   chosen remote, **Delete on Remote**.
 - **Fetch**, **Update** (fetch + pull), **Push** (with an outgoing-commit preview),
-  **Force Push**, **Push Tags**, and **Manage Remotes** (add / rename / change
-  URL / remove).
+  **Force Push** (`--force-with-lease`, with a stronger warning on branches from
+  `jegit.protectedBranches`), **Push Tags**, and **Manage Remotes** (add /
+  rename / change URL / remove).
 
 ### Editor
 - **Annotate with Git Blame** (colored by commit age), **Show File History**
