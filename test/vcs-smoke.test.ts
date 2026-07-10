@@ -947,6 +947,15 @@ describe('vcs.js webview smoke', () => {
     expect(consoleEl.textContent).toContain('fetch');
   });
 
+  it('highlights failed console commands', () => {
+    sendToWebview({ type: 'consoleData', lines: ['$ git status', '$ git push  [failed]'] });
+    const rows = [...document.querySelectorAll('#console-log div')];
+    const failed = rows.find((r) => r.textContent?.includes('push')) as HTMLElement;
+    const ok = rows.find((r) => r.textContent?.includes('status')) as HTMLElement;
+    expect(failed.classList.contains('console-err')).toBe(true);
+    expect(ok.classList.contains('console-err')).toBe(false);
+  });
+
   it('posts copyMessage from the commit context menu', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));

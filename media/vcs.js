@@ -179,7 +179,13 @@
   function renderConsole() {
     const query = $('console-filter').value.trim().toLowerCase();
     const shown = query ? consoleLines.filter((l) => l.toLowerCase().includes(query)) : consoleLines;
-    consoleLogEl.textContent = shown.join('\n') + (shown.length ? '\n' : '');
+    consoleLogEl.innerHTML = '';
+    for (const l of shown) {
+      const line = document.createElement('div');
+      line.textContent = l;
+      if (l.endsWith(' [failed]')) line.className = 'console-err';
+      consoleLogEl.appendChild(line);
+    }
     consoleLogEl.scrollTop = consoleLogEl.scrollHeight;
   }
   $('console-filter').addEventListener('input', renderConsole);

@@ -74,6 +74,10 @@ body {
   white-space: pre-wrap;
 }
 
+.console .console-err {
+  color: var(--vscode-errorForeground, #f14c4c);
+}
+
 .toolbar {
   display: flex;
   align-items: center;
