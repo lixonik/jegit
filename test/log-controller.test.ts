@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { LogController } from '../src/ui/logController';
 import type { Repository } from '../src/model/repository';
 import type { Incoming } from '../src/model/webviewMessages';
@@ -198,6 +201,23 @@ describe('LogController', () => {
       branches: ['main'],
       tags: ['v1'],
     });
+  });
+
+  it('exports a commit as a patch file via the save dialog', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jegit-patch-'));
+    const target = path.join(dir, 'export.patch');
+    win.showSaveDialog = async () => ({ fsPath: target });
+    const { ctrl } = makeController(makeGit({ commitPatch: vi.fn(async () => 'patch body\n') }));
+    await ctrl.handle({ type: 'createPatchFromCommit', hash: 'abc' } as Incoming);
+    expect(fs.readFileSync(target, 'utf8')).toBe('patch body\n');
+  });
+
+  it('refuses to export an empty patch', async () => {
+    const save = vi.fn(async () => undefined);
+    win.showSaveDialog = save;
+    const { ctrl } = makeController(makeGit({ commitPatch: vi.fn(async () => '  \n') }));
+    await ctrl.handle({ type: 'createPatchFromCommit', hash: 'abc' } as Incoming);
+    expect(save).not.toHaveBeenCalled();
   });
 
   it('diffs a revision file against the local copy', async () => {
