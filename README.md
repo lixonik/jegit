@@ -30,8 +30,9 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
   the changed files as a tree (click to diff, **Show Diff with Local**, or
   **Open on Remote at This Revision**); the containing branches/tags and the
   author in the details are clickable too (scope or filter the log).
-- Arrow-key navigation over commits; Ctrl-click marks a pair to **Compare
-  Selected Versions** or **Cherry-Pick Selected (oldest first)**.
+- Keyboard navigation over commits (arrows, Home/End, PageUp/PageDown);
+  Ctrl-click marks a pair to **Compare Selected Versions** or **Cherry-Pick
+  Selected (oldest first)**.
 - Filters: free text, **Branch**, **User**, **Date**, and **Path**; the text,
   user and date filters survive a reload, an active filter shows a shown/total
   count, and Escape clears the search.

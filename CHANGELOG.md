@@ -10,7 +10,7 @@
 - Push: choose the target remote for the first push when several remotes exist.
 - Stash: a changed-files preview before applying or dropping.
 - Log: search-match highlighting, branches and tags containing the selected commit in the details panel, and recalling a recent commit message.
-- Log: cherry-pick a ctrl-clicked pair oldest first, clickable ref chips that switch the log scope, arrow-key navigation over commits, and Show Diff with Local on a details file.
+- Log: cherry-pick a ctrl-clicked pair oldest first, clickable ref chips that switch the log scope, keyboard navigation over commits (arrows, Home/End, PageUp/PageDown), and Show Diff with Local on a details file.
 - Context menus close on Escape.
 - Merge resolver: after applying, the next conflicted file is offered until the queue is empty.
 - Resolve Conflicts: Accept Yours / Accept Theirs per file alongside the merge resolver; the list reopens until every conflict is done.
