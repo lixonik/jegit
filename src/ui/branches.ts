@@ -73,6 +73,7 @@ async function branchActions(repo: Repository, ref: string, current: string, isR
   }
   actions.push({ label: '$(diff) Show Diff with Working Tree', a: 'diffWorkingTree' });
   if (!isRemote) {
+    actions.push({ label: `$(repo-push) Push ${ref}...`, a: 'push' });
     actions.push({ label: '$(edit) Rename...', a: 'rename' });
     if (ref !== current) actions.push({ label: '$(trash) Delete', a: 'delete' });
   }
@@ -193,6 +194,24 @@ export async function performBranchAction(
           `${name} (${ref} <-> Working Tree)`,
         );
         return;
+      }
+      case 'push': {
+        const remotes = await repo.git.remote.list();
+        if (!remotes.length) {
+          vscode.window.showInformationMessage('JeGit: no remotes configured.');
+          return;
+        }
+        let target = remotes[0].name;
+        if (remotes.length > 1) {
+          const pick = await vscode.window.showQuickPick(
+            remotes.map((r) => r.name),
+            { placeHolder: `Push ${ref} to` },
+          );
+          if (!pick) return;
+          target = pick;
+        }
+        await repo.git.pushBranch(target, ref);
+        break;
       }
       case 'rename': {
         const name = await vscode.window.showInputBox({ prompt: `Rename ${ref} to`, value: ref });

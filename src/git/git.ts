@@ -129,6 +129,9 @@ export class Git {
   async pushForce(): Promise<void> {
     await this.raw(['push', '--force-with-lease']);
   }
+  async pushBranch(remote: string, ref: string): Promise<void> {
+    await this.raw(['push', remote, ref]);
+  }
   async pushTags(): Promise<void> {
     await this.raw(['push', '--tags']);
   }

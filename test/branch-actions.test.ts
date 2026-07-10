@@ -49,6 +49,33 @@ describe('performBranchAction', () => {
     expect(repo.git.checkout).toHaveBeenCalledWith('feature/x');
   });
 
+  it('pushes a local branch to the single remote', async () => {
+    const repo = makeRepo({
+      pushBranch: vi.fn(async () => undefined),
+      remote: { list: vi.fn(async () => [{ name: 'origin', url: 'u' }]) },
+    });
+    await performBranchAction(repo, 'feature/x', 'main', false, 'push');
+    expect(repo.git.pushBranch).toHaveBeenCalledWith('origin', 'feature/x');
+  });
+
+  it('asks which remote to push to and honours the cancel', async () => {
+    const repo = makeRepo({
+      pushBranch: vi.fn(async () => undefined),
+      remote: {
+        list: vi.fn(async () => [
+          { name: 'origin', url: 'u' },
+          { name: 'fork', url: 'f' },
+        ]),
+      },
+    });
+    await performBranchAction(repo, 'feature/x', 'main', false, 'push');
+    expect(repo.git.pushBranch).not.toHaveBeenCalled();
+
+    win.showQuickPick = async () => 'fork';
+    await performBranchAction(repo, 'feature/x', 'main', false, 'push');
+    expect(repo.git.pushBranch).toHaveBeenCalledWith('fork', 'feature/x');
+  });
+
   it('merges with the picked mode', async () => {
     const repo = makeRepo();
     win.showQuickPick = async () => ({ label: 'Squash Merge', mode: 'squash' });
