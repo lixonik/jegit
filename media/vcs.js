@@ -1022,6 +1022,13 @@
     const t = document.createElement('span');
     t.textContent = info.text;
     chip.append(i, t);
+    if (info.kind !== 'head') {
+      chip.title = 'Show log for ' + info.text;
+      chip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        vscode.postMessage({ type: 'setLogScope', scope: info.text });
+      });
+    }
     return chip;
   }
 

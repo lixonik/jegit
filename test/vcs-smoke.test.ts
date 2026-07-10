@@ -648,6 +648,21 @@ describe('vcs.js webview smoke', () => {
     expect(call.path).toBe('src/a.ts');
   });
 
+  it('switches the log scope when a ref chip is clicked', () => {
+    sendToWebview({
+      type: 'logData',
+      commits: [
+        { hash: 'i'.repeat(40), parents: [], author: 'Dev', email: 'a@e', date: '2026-07-09T12:00:00+03:00', subject: 'Chip test', refs: ['chips'] },
+      ],
+    });
+    const chip = document.querySelector('#log-list .ref.local') as HTMLElement;
+    expect(chip).not.toBeNull();
+    const detailsBefore = posted.filter((p) => p.type === 'commitDetails').length;
+    chip.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'setLogScope', scope: 'chips' });
+    expect(posted.filter((p) => p.type === 'commitDetails')).toHaveLength(detailsBefore);
+  });
+
   it('closes the context menu with Escape', () => {
     const row = document.querySelector('.log-row') as HTMLElement;
     row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
