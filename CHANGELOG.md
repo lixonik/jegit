@@ -15,7 +15,8 @@
 - Merge resolver: after applying, the next conflicted file is offered until the queue is empty.
 - Resolve Conflicts: Accept Yours / Accept Theirs per file alongside the merge resolver; the list reopens until every conflict is done.
 - Show History for Selection: `git log -L` over the selected lines, shown as a diff document.
-- Shelf: per-file Show Diff (double click) and Unshelve This File (shelf kept); Show Patch for the whole shelf.
+- Shelf: per-file Show Diff (double click) and Unshelve This File (shelf kept); Show Patch for the whole shelf; Shelve Silently under the active changelist name.
+- Staging mode: Stage All / Unstage All buttons on the group headers.
 - Log: Browse Repository at This Revision in the commit context menu.
 - File History: Compare with Local alongside Show Diff and Restore.
 - Local Changes: Show History and Copy Path in the file context menu.

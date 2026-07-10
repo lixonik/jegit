@@ -433,6 +433,7 @@
       e.stopPropagation();
       showCtx(e, [
         { label: 'Shelve...', cmd: () => vscode.postMessage({ type: 'shelve', items: items() }) },
+        { label: 'Shelve Silently', cmd: () => vscode.postMessage({ type: 'shelveSilently', items: items() }) },
         { label: 'Create Patch...', cmd: () => vscode.postMessage({ type: 'createPatch', items: items() }) },
         { label: 'Rollback (delete) all...', cmd: () => vscode.postMessage({ type: 'rollback', items: items() }) },
       ]);

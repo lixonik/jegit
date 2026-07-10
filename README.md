@@ -19,8 +19,9 @@ Darcula-styled, tabbed UI: **Local Changes / Log / Shelf / Console**.
 - **Commit message inspections** (subject length, blank line before the body)
   with a JetBrains-style "Commit Anyway" confirmation, and a warning before
   **amending an already pushed commit**.
-- **Rollback**, **Shelve**, **Create Patch**, **Add to .gitignore**, **Show
-  History**, **Copy Path**; click a file for a HEAD diff.
+- **Rollback**, **Shelve** (or **Shelve Silently** under the active changelist
+  name), **Create Patch**, **Add to .gitignore**, **Show History**,
+  **Copy Path**; click a file for a HEAD diff.
 - `Ctrl+Enter` commits, `Ctrl+Shift+Enter` commits and pushes.
 
 ### Log
