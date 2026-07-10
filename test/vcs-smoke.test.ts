@@ -872,6 +872,22 @@ describe('vcs.js webview smoke', () => {
     expect(call.hash).toHaveLength(40);
   });
 
+  it('cherry-picks the selected commit and refreshes from the log toolbar', () => {
+    const logTab = document.querySelector('.tab[data-tab="log"]') as HTMLElement;
+    logTab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const row = document.querySelector('.log-row') as HTMLElement;
+    row.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const hash = row.dataset.hash!;
+
+    (document.getElementById('log-cherrypick') as HTMLElement).dispatchEvent(
+      new MouseEvent('click', { bubbles: true }),
+    );
+    expect(posted).toContainEqual({ type: 'cherryPick', hash });
+
+    (document.getElementById('log-refresh') as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'requestLog' });
+  });
+
   it('jumps over commits with PageDown and PageUp', () => {
     const logTab = document.querySelector('.tab[data-tab="log"]') as HTMLElement;
     logTab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
