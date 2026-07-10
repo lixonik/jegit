@@ -124,6 +124,19 @@ describe('Repository', () => {
     expect(git.applyPatch3way).not.toHaveBeenCalled();
   });
 
+  it('newChangelist activates the created list unless told otherwise', async () => {
+    const store = makeStore();
+    (store as unknown as Record<string, unknown>).create = vi.fn(async (name: string) => ({ id: 'cl9', name }));
+    (store as unknown as Record<string, unknown>).setActive = vi.fn(async () => undefined);
+    const repo = new Repository(makeGit(), store, makeShelf());
+    const created = await repo.newChangelist('Feature X');
+    expect(created).toEqual({ id: 'cl9', name: 'Feature X' });
+    expect(store.setActive).toHaveBeenCalledWith('cl9');
+
+    await repo.newChangelist('Quiet', false);
+    expect(store.setActive).toHaveBeenCalledTimes(1);
+  });
+
   it('maps a workspace uri to a repo-relative path', () => {
     const repo = new Repository(makeGit(), makeStore(), makeShelf());
     expect(repo.relPathOf({ fsPath: 'D:/repo/src/a.ts' } as never)).toBe('src/a.ts');
