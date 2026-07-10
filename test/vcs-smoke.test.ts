@@ -725,6 +725,14 @@ describe('vcs.js webview smoke', () => {
     selected = document.querySelector('.log-row.selected') as HTMLElement;
     expect(selected.textContent).toContain('Key nav one');
 
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    selected = document.querySelector('.log-row.selected') as HTMLElement;
+    expect(selected.textContent).toContain('Key nav two');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    selected = document.querySelector('.log-row.selected') as HTMLElement;
+    expect(selected.textContent).toContain('Key nav one');
+
     sendToWebview({
       type: 'logData',
       commits: [
