@@ -976,6 +976,13 @@
       if (compareSel.size === 2) {
         const pair = [...compareSel];
         menu.push({ label: 'Compare Selected Versions', cmd: () => vscode.postMessage({ type: 'compareCommits', a: pair[0], b: pair[1] }) });
+        menu.push({
+          label: 'Cherry-Pick Selected (oldest first)',
+          cmd: () => {
+            const ordered = logCommits.filter((x) => compareSel.has(x.hash)).reverse();
+            for (const x of ordered) vscode.postMessage({ type: 'cherryPick', hash: x.hash });
+          },
+        });
       }
       menu.push(
         { label: 'Checkout Revision', cmd: () => vscode.postMessage({ type: 'checkoutRev', hash: c.hash }) },

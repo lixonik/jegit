@@ -610,6 +610,29 @@ describe('vcs.js webview smoke', () => {
     expect(document.querySelectorAll('.log-row')).toHaveLength(2);
   });
 
+  it('cherry-picks a ctrl-clicked pair oldest first', () => {
+    sendToWebview({
+      type: 'logData',
+      commits: [
+        { hash: 'h'.repeat(40), parents: [], author: 'Dev', email: 'a@e', date: '2026-07-09T12:00:00+03:00', subject: 'Newer pick', refs: [] },
+        { hash: 'g'.repeat(40), parents: [], author: 'Dev', email: 'a@e', date: '2026-07-08T12:00:00+03:00', subject: 'Older pick', refs: [] },
+      ],
+    });
+    const rows = [...document.querySelectorAll('.log-row')] as HTMLElement[];
+    rows[0].dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: true }));
+    rows[1].dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: true }));
+
+    rows[0].dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const pick = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Cherry-Pick Selected (oldest first)',
+    ) as HTMLElement;
+    expect(pick).toBeDefined();
+    const before = posted.filter((p) => p.type === 'cherryPick').length;
+    pick.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const picks = posted.filter((p) => p.type === 'cherryPick').slice(before) as { hash: string }[];
+    expect(picks.map((p) => p.hash)).toEqual(['g'.repeat(40), 'h'.repeat(40)]);
+  });
+
   it('opens the revision diff when a details file is clicked', () => {
     const fileRow = [...document.querySelectorAll('#log-details *')].find(
       (el) => el.textContent?.trim() === 'a.ts',
