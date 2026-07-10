@@ -119,6 +119,20 @@ describe('ShelfController', () => {
     expect(repo.deleteShelf).toHaveBeenCalledWith('s1');
   });
 
+  it('names the shelf and lists its files in the delete confirmation', async () => {
+    const warn = vi.fn(async () => undefined);
+    win.showWarningMessage = warn;
+    const repo = makeRepo({
+      shelves: () => [{ id: 's1', name: 'WIP dialogs', files: ['src/a.ts', 'src/b.ts'] }],
+    });
+    const ctrl = new ShelfController(repo, post);
+    await ctrl.handle({ type: 'deleteShelf', id: 's1' } as Incoming);
+    const [message, options] = warn.mock.calls[0] as [string, { detail: string }];
+    expect(message).toContain('WIP dialogs');
+    expect(options.detail).toContain('src/a.ts');
+    expect(options.detail).toContain('src/b.ts');
+  });
+
   it('shelves silently under the active changelist name without a prompt', async () => {
     const repo = makeRepo();
     const input = vi.fn(async () => undefined);

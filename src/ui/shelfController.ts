@@ -150,7 +150,15 @@ export class ShelfController {
   }
 
   private async deleteShelf(id: string): Promise<void> {
-    const ok = await vscode.window.showWarningMessage('Delete this shelf?', { modal: true }, 'Delete');
+    const entry = this.repo.shelves().find((e) => e.id === id);
+    const files = entry?.files ?? [];
+    const listed = files.slice(0, 10);
+    const detail = listed.join('\n') + (files.length > listed.length ? `\n... and ${files.length - listed.length} more` : '');
+    const ok = await vscode.window.showWarningMessage(
+      `Delete the shelf "${entry?.name ?? id}"? Its patch will be lost.`,
+      { modal: true, detail },
+      'Delete',
+    );
     if (ok !== 'Delete') return;
     await this.repo.deleteShelf(id);
     this.postShelf();
