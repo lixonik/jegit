@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { Repository } from '../model/repository';
+import { isConflicted } from '../util/status';
+import { isEmpty } from '../util/guards';
 
 /**
  * JetBrains-style three-pane conflict resolver: Yours (ours) on the left, an
@@ -43,6 +45,7 @@ export async function showMergeResolver(
         await repo.git.add([rel]);
         vscode.window.showInformationMessage(`JeGit: resolved ${name}.`);
         panel.dispose();
+        await offerNextConflict(context, repo, rel);
       } catch (err) {
         vscode.window.showErrorMessage(`JeGit: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
@@ -50,6 +53,22 @@ export async function showMergeResolver(
       }
     }
   });
+}
+
+async function offerNextConflict(
+  context: vscode.ExtensionContext,
+  repo: Repository,
+  resolved: string,
+): Promise<void> {
+  const status = await repo.git.status().catch(() => []);
+  const remaining = status.filter((f) => isConflicted(f.status) && f.path !== resolved);
+  if (isEmpty(remaining)) return;
+  const next = remaining[0].path;
+  const pick = await vscode.window.showInformationMessage(
+    `JeGit: ${remaining.length} conflict(s) left. Resolve ${next.split('/').pop()} next?`,
+    'Next Conflict',
+  );
+  if (pick === 'Next Conflict') await showMergeResolver(context, repo, next);
 }
 
 function html(webview: vscode.Webview, context: vscode.ExtensionContext): string {
