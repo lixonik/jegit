@@ -23,10 +23,11 @@ export async function showFileHistory(repo: Repository, rel: string): Promise<vo
   });
   if (!pick) return;
 
-  type ActItem = vscode.QuickPickItem & { a: 'diff' | 'restore' };
+  type ActItem = vscode.QuickPickItem & { a: 'diff' | 'local' | 'restore' };
   const action = await vscode.window.showQuickPick<ActItem>(
     [
       { label: '$(diff) Show Diff', a: 'diff' },
+      { label: '$(file) Compare with Local', a: 'local' },
       { label: '$(history) Restore This Version', a: 'restore' },
     ],
     { placeHolder: `${pick.hash.slice(0, 7)}: ${pick.label}` },
@@ -34,6 +35,16 @@ export async function showFileHistory(repo: Repository, rel: string): Promise<vo
   if (!action) return;
 
   const name = rel.split('/').pop() ?? rel;
+  if (action.a === 'local') {
+    const revUri = vscode.Uri.from({ scheme: REV_SCHEME, path: '/' + rel, query: pick.hash });
+    await vscode.commands.executeCommand(
+      'vscode.diff',
+      revUri,
+      repo.absUri(rel),
+      `${name} (${pick.hash.slice(0, 7)} <-> Local)`,
+    );
+    return;
+  }
   if (action.a === 'restore') {
     const ok = await vscode.window.showWarningMessage(
       `Restore ${name} to ${pick.hash.slice(0, 7)}? Current changes to this file will be overwritten.`,

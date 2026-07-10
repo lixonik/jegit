@@ -15,6 +15,7 @@ function makeRepo(log: unknown[] = [commit]): Repository {
       fileLog: vi.fn(async () => log),
       restoreFile: vi.fn(async () => undefined),
     },
+    absUri: (rel: string) => ({ fsPath: 'D:/repo/' + rel }),
     refresh: vi.fn(async () => undefined),
   } as unknown as Repository;
 }
@@ -50,6 +51,28 @@ describe('showFileHistory', () => {
     );
     await showFileHistory(repo, 'src/a.ts');
     expect(exec).toHaveBeenCalled();
+    expect(repo.git.restoreFile).not.toHaveBeenCalled();
+  });
+
+  it('compares the picked revision with the local copy', async () => {
+    const repo = makeRepo();
+    const exec = vi.fn(async () => undefined);
+    cmd.executeCommand = exec;
+    scriptQuickPick(
+      { label: 'Fix a', hash: commit.hash, parent: commit.parent },
+      { label: 'Compare with Local', a: 'local' },
+    );
+    await showFileHistory(repo, 'src/a.ts');
+    const [name, left, right, title] = exec.mock.calls[0] as [
+      string,
+      { query: string },
+      { fsPath: string },
+      string,
+    ];
+    expect(name).toBe('vscode.diff');
+    expect(left.query).toBe(commit.hash);
+    expect(right.fsPath).toBe('D:/repo/src/a.ts');
+    expect(title).toContain('Local');
     expect(repo.git.restoreFile).not.toHaveBeenCalled();
   });
 
