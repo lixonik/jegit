@@ -37,6 +37,9 @@ export class ShelfController {
       case 'shelfFileDiff':
         await this.showFileDiff(m.id, m.path);
         return true;
+      case 'unshelveFile':
+        await this.unshelveFile(m.id, m.path);
+        return true;
       default:
         return false;
     }
@@ -83,6 +86,26 @@ export class ShelfController {
     if (isNil(name) || isEmpty(name.trim())) return;
     await this.repo.renameShelf(id, name.trim());
     this.postShelf();
+  }
+
+  private async unshelveFile(id: string, rel: string): Promise<void> {
+    try {
+      const res = await this.repo.unshelveFile(id, rel);
+      if (res === 'missing') {
+        vscode.window.showInformationMessage('JeGit: no diff for that file in the shelf.');
+        return;
+      }
+      this.postShelf();
+      if (res === 'conflicts') {
+        vscode.window.showWarningMessage('JeGit: unshelved with conflicts -- resolve them, then commit.');
+      } else {
+        vscode.window.showInformationMessage(`JeGit: unshelved ${rel} (shelf kept).`);
+      }
+    } catch (err) {
+      vscode.window.showErrorMessage(
+        `JeGit: ${err instanceof Error ? err.message : String(err)} (patch may not apply cleanly)`,
+      );
+    }
   }
 
   private async showFileDiff(id: string, rel: string): Promise<void> {

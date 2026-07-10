@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
+import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Git, FileChange } from '../git/git';
 import { ChangelistStore } from './changelistStore';
 import { ShelfStore, ShelfEntry } from './shelfStore';
 import { isConflicted } from '../util/status';
+import { patchSectionFor } from '../util/diff';
 import { isNil, isDefined, isEmpty, notEmpty } from '../util/guards';
 
 export interface ChangeItem {
@@ -179,6 +181,24 @@ export class Repository implements vscode.Disposable {
     if (result === 'clean' && !keep) await this.shelf.remove(id);
     await this.refresh();
     return result;
+  }
+
+  /** Apply a single file's section of a shelf patch; the shelf entry is kept. */
+  async unshelveFile(id: string, rel: string): Promise<'clean' | 'conflicts' | 'missing'> {
+    const section = patchSectionFor(this.shelfPatchText(id), rel);
+    if (isEmpty(section.trim())) return 'missing';
+    const tmp = path.join(os.tmpdir(), `jegit-unshelve-${Date.now()}.patch`);
+    fs.writeFileSync(tmp, section.endsWith('\n') ? section : section + '\n', 'utf8');
+    try {
+      return await this.git.applyPatch3way(tmp);
+    } finally {
+      try {
+        fs.unlinkSync(tmp);
+      } catch {
+        /* already gone */
+      }
+      await this.refresh();
+    }
   }
 
   async deleteShelf(id: string): Promise<void> {

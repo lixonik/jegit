@@ -119,6 +119,24 @@ describe('ShelfController', () => {
     expect(repo.deleteShelf).toHaveBeenCalledWith('s1');
   });
 
+  it('unshelves a single file and reposts the shelf', async () => {
+    const repo = makeRepo({ unshelveFile: vi.fn(async () => 'clean') });
+    const info = vi.fn(async () => undefined);
+    win.showInformationMessage = info;
+    const ctrl = new ShelfController(repo, post);
+    await ctrl.handle({ type: 'unshelveFile', id: 's1', path: 'src/a.ts' } as Incoming);
+    expect(repo.unshelveFile).toHaveBeenCalledWith('s1', 'src/a.ts');
+    expect(posts).toContainEqual({ type: 'shelfData', entries: [{ id: 's1', name: 'Shelf 1' }] });
+    expect(info).toHaveBeenCalled();
+  });
+
+  it('reports a single-file unshelve miss without reposting', async () => {
+    const repo = makeRepo({ unshelveFile: vi.fn(async () => 'missing') });
+    const ctrl = new ShelfController(repo, post);
+    await ctrl.handle({ type: 'unshelveFile', id: 's1', path: 'src/nope.ts' } as Incoming);
+    expect(posts).toEqual([]);
+  });
+
   it('shows a shelved file diff as a diff document', async () => {
     const shown: unknown[] = [];
     win.showTextDocument = async (doc: unknown) => {

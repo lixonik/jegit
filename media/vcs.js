@@ -1263,6 +1263,17 @@
           dir.textContent = dirName(f);
           row.append(fi, fname, dir);
           row.addEventListener('dblclick', () => vscode.postMessage({ type: 'shelfFileDiff', id: sh.id, path: f }));
+          row.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showCtx(e, [
+              { label: 'Show Diff', cmd: () => vscode.postMessage({ type: 'shelfFileDiff', id: sh.id, path: f }) },
+              {
+                label: 'Unshelve This File (shelf kept)',
+                cmd: () => vscode.postMessage({ type: 'unshelveFile', id: sh.id, path: f }),
+              },
+            ]);
+          });
           shelfList.appendChild(row);
         }
       }

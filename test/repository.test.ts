@@ -87,6 +87,43 @@ describe('Repository', () => {
     expect(shelf.remove).not.toHaveBeenCalled();
   });
 
+  it('unshelveFile applies only that file section and keeps the shelf', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'jegit-shelf-'));
+    const patch = [
+      'diff --git a/src/a.ts b/src/a.ts',
+      '@@ -1 +1 @@',
+      '-old a',
+      '+new a',
+      'diff --git a/src/b.ts b/src/b.ts',
+      '@@ -1 +1 @@',
+      '-old b',
+      '+new b',
+      '',
+    ].join('\n');
+    fs.writeFileSync(path.join(dir, 's1.patch'), patch, 'utf8');
+    const shelf = makeShelf([{ id: 's1', name: 'WIP' }]);
+    (shelf as unknown as Record<string, unknown>).patchPath = (id: string) => path.join(dir, id + '.patch');
+    let applied = '';
+    const git = makeGit({
+      applyPatch3way: vi.fn(async (p: string) => {
+        applied = fs.readFileSync(p, 'utf8');
+        return 'clean';
+      }),
+    });
+    const repo = new Repository(git, makeStore(), shelf);
+    expect(await repo.unshelveFile('s1', 'src/a.ts')).toBe('clean');
+    expect(applied).toContain('+new a');
+    expect(applied).not.toContain('src/b.ts');
+    expect(shelf.remove).not.toHaveBeenCalled();
+  });
+
+  it('unshelveFile reports a file that is not in the shelf patch', async () => {
+    const git = makeGit();
+    const repo = new Repository(git, makeStore(), makeShelf([{ id: 's1', name: 'WIP' }]));
+    expect(await repo.unshelveFile('s1', 'src/nope.ts')).toBe('missing');
+    expect(git.applyPatch3way).not.toHaveBeenCalled();
+  });
+
   it('maps a workspace uri to a repo-relative path', () => {
     const repo = new Repository(makeGit(), makeStore(), makeShelf());
     expect(repo.relPathOf({ fsPath: 'D:/repo/src/a.ts' } as never)).toBe('src/a.ts');

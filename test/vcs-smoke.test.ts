@@ -807,4 +807,21 @@ describe('vcs.js webview smoke', () => {
     fileRow.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
     expect(posted).toContainEqual({ type: 'shelfFileDiff', id: 's1', path: 'src/a.ts' });
   });
+
+  it('unshelves a single file from its context menu', () => {
+    sendToWebview({
+      type: 'shelfData',
+      entries: [{ id: 's1', name: 'WIP dialogs', createdAt: '2026-07-09T12:00:00+03:00', files: ['src/a.ts'] }],
+    });
+    const fileRow = [...document.querySelectorAll('#shelf-list .tree-row')].find((el) =>
+      el.textContent?.includes('a.ts'),
+    ) as HTMLElement;
+    fileRow.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true }));
+    const item = [...document.getElementById('ctxmenu')!.querySelectorAll('*')].find(
+      (el) => el.textContent === 'Unshelve This File (shelf kept)',
+    ) as HTMLElement;
+    expect(item).toBeDefined();
+    item.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(posted).toContainEqual({ type: 'unshelveFile', id: 's1', path: 'src/a.ts' });
+  });
 });
